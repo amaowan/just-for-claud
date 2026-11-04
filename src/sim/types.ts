@@ -183,6 +183,8 @@ export interface TransmissionRecord {
   before: string;
   after: string;
   operator?: OperatorId;
+  /** Text parameters for the operator description. */
+  params?: Record<string, string>;
   accepted: boolean;
 }
 
