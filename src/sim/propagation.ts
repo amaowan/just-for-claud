@@ -67,6 +67,18 @@ interface Hearing {
   village: string;
   local: LocalBelief[];
   via: string;
+  /** Lower bound on the acceptance probability (the traveller's telling). */
+  minAcceptance?: number;
+}
+
+/** Stubbornness used for a rewrite: raised when the belief being replaced is the village's original one. */
+export function effectiveStubbornness(sim: Sim, listenerId: string, conflicts: Idea[]): number {
+  const npc = sim.data.npcs[listenerId];
+  const home = npc.home;
+  if (home && conflicts.some((c) => sim.initialLocal[home].some((l) => l.core === c.core))) {
+    return Math.max(npc.stubbornness, CONFIG.tradition.stubbornness);
+  }
+  return npc.stubbornness;
 }
 
 type HearingResult = 'same' | 'accepted' | 'rejected';
@@ -84,7 +96,8 @@ function hear(sim: Sim, h: Hearing): HearingResult {
   }
   const conflicts = believedIdeas(sim, h.listenerId).filter((b) => beliefsConflict(b, h.idea, data));
   const fit = fitFactor(fitOf(h.idea, data.villages[h.village], h.local, data));
-  const p = acceptanceProbability(listener.gullibility, h.trust, fit, listener.stubbornness, conflicts.length > 0);
+  const stub = effectiveStubbornness(sim, h.listenerId, conflicts);
+  const p = Math.max(h.minAcceptance ?? 0, acceptanceProbability(listener.gullibility, h.trust, fit, stub, conflicts.length > 0));
   if (!sim.rng.chance(p)) return 'rejected';
   acceptIdea(sim, h.listenerId, h.idea, conflicts, h.via);
   return 'accepted';
@@ -140,7 +153,7 @@ export function retell(sim: Sim, tellerId: string, listenerId: string, idea: Ide
 
 export type TellResult = { status: 'accepted' | 'rejected' | 'already'; idea: Idea };
 
-/** The traveller tells an idea directly. Uses the same acceptance formula; never mutates. */
+/** The traveller tells an idea directly. Same acceptance formula with a floor; never mutates. */
 export function tellByPlayer(sim: Sim, npcId: string, shape: IdeaShape): TellResult {
   const { world } = sim;
   const idea = registerIdea(sim, shape, null, [], world.day);
@@ -148,7 +161,7 @@ export function tellByPlayer(sim: Sim, npcId: string, shape: IdeaShape): TellRes
   const village = locationOf(sim, npcId);
   const result = hear(sim, {
     listenerId: npcId, idea, trust: CONFIG.propagation.playerTrust, village,
-    local: localBeliefs(sim, village), via: 'player',
+    local: localBeliefs(sim, village), via: 'player', minAcceptance: CONFIG.propagation.playerMinAcceptance,
   });
   if (result !== 'same') {
     world.history.push({

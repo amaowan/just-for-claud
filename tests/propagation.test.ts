@@ -3,7 +3,7 @@ import { getGameData } from '../src/gameData.ts';
 import { CONFIG } from '../src/sim/config.ts';
 import { coreKey } from '../src/sim/idea.ts';
 import {
-  acceptanceProbability, listenerCount, mutationProbability, propagateDay, tellByPlayer,
+  acceptanceProbability, effectiveStubbornness, listenerCount, mutationProbability, propagateDay, tellByPlayer,
 } from '../src/sim/propagation.ts';
 import { advanceDays } from '../src/sim/simulate.ts';
 import type { IdeaShape } from '../src/sim/types.ts';
@@ -37,17 +37,34 @@ describe('propagation formulas', () => {
 
 describe('daily propagation', () => {
   it('the player can plant an idea; a refusal leaves no belief', () => {
-    let accepted = 0;
     for (let seed = 0; seed < 20; seed++) {
       const sim = createSim(data, seed);
       const r = tellByPlayer(sim, 'c03', giant);
       const has = !!sim.world.beliefs.c03[coreKey(giant)];
       expect(has).toBe(r.status === 'accepted');
       expect(sim.world.history.at(-1)).toMatchObject({ from: 'player', to: 'c03', accepted: r.status === 'accepted' });
-      if (has) accepted++;
     }
-    // c03: gullibility 0.9 × 0.8 trust × 1.0 fit = 0.72
-    expect(accepted).toBeGreaterThan(8);
+  });
+
+  it('the player is believed at least 75% of the time, even by a skeptic', () => {
+    let accepted = 0;
+    const n = 400;
+    for (let seed = 0; seed < n; seed++) {
+      // 老贝: gullibility 0.2 -> formula alone gives 0.2 × 0.8 × 1.0 = 16%.
+      if (tellByPlayer(createSim(data, seed), 'c02', giant).status === 'accepted') accepted++;
+    }
+    expect(accepted / n).toBeGreaterThan(0.7);
+    expect(accepted / n).toBeLessThan(0.82); // 400 trials: ±2% noise around 75%
+  });
+
+  it('believers of the original village belief are extra stubborn about it', () => {
+    const sim = createSim(data, 11);
+    const original = sim.world.ideas[sim.initialLocal.coast[0].lineage];
+    const holder = data.residents.coast.find((id) => sim.world.beliefs[id][original.core])!;
+    const variant = registerIdea(sim, { ...original, subject: 'rainSpirit' }, original.lineage, [original.key], 1);
+    expect(effectiveStubbornness(sim, holder, [original])).toBeGreaterThanOrEqual(CONFIG.tradition.stubbornness);
+    // A mutated offshoot does not get the bonus.
+    expect(effectiveStubbornness(sim, holder, [variant])).toBe(data.npcs[holder].stubbornness);
   });
 
   it('an idea spreads through the village over a month', () => {

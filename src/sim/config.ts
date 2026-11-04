@@ -26,6 +26,8 @@ export const CONFIG = {
     /** Trust used when there is no tie between listener and teller. */
     defaultTrust: 0.3,
     playerTrust: 0.8,
+    /** The traveller's telling is accepted with at least this probability. */
+    playerMinAcceptance: 0.75,
     fitMatch: 1.2,
     fitNeutral: 1.0,
     fitConflict: 0.5,
@@ -94,6 +96,14 @@ export const CONFIG = {
     /** A belief not mentioned (told or heard) for this many days may be forgotten at year end. */
     unmentionedDays: 360,
     forgetChance: 0.2,
+  },
+
+  tradition: {
+    /**
+     * Believers of a village's original belief resist rewriting it: when the conflicting belief is
+     * the original core, the listener's stubbornness is raised to at least this value.
+     */
+    stubbornness: 0.9,
   },
 
   chaos: {
