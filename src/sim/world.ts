@@ -59,13 +59,14 @@ export function syncRng(sim: Sim): void {
 }
 
 /** Get or create the idea for a shape. A new idea starts its own lineage when lineage is null. */
-export function registerIdea(sim: Sim, shape: IdeaShape, lineage: string | null, parents: string[], day: number): Idea {
+export function registerIdea(sim: Sim, shape: IdeaShape, lineage: string | null, parents: string[], day: number, viaOp?: OperatorId): Idea {
   const s = normalizeShape(shape);
   const key = shapeKey(s);
   const existing = sim.world.ideas[key];
   if (existing) return existing;
   const core = coreKey(s);
   const idea: Idea = { ...s, key, core, lineage: lineage ?? key, parents, bornDay: day };
+  if (viaOp) idea.viaOp = viaOp;
   sim.world.ideas[key] = idea;
   sim.world.coreLineage[core] ??= idea.lineage;
   return idea;

@@ -26,11 +26,11 @@ export function acceptanceProbability(gullibility: number, trust: number, fit: n
   return Math.max(0, Math.min(1, p));
 }
 
-/** 变形概率 = 0.1 + 0.4 × 想象力 + 0.3 × (1 − 清晰度) (− k × 固执, k defaults to 0). */
+/** 变形概率 = 缩放 × (基础 + 0.4 × 想象力 + 0.3 × (1 − 清晰度) − k × 固执), k defaults to 0. */
 export function mutationProbability(teller: Pick<Npc, 'imagination' | 'stubbornness'>, idea: IdeaShape): number {
   const p = CONFIG.propagation;
-  const v = p.mutationBase + p.mutationImagination * teller.imagination
-    + p.mutationUnclarity * (1 - clarity(idea)) - p.mutationStubbornness * teller.stubbornness;
+  const v = p.mutationScale * (p.mutationBase + p.mutationImagination * teller.imagination
+    + p.mutationUnclarity * (1 - clarity(idea)) - p.mutationStubbornness * teller.stubbornness);
   return Math.max(0, Math.min(1, v));
 }
 
@@ -122,7 +122,7 @@ export function retell(sim: Sim, tellerId: string, listenerId: string, idea: Ide
       proposal = { ...proposal, params: { ...proposal.params, other: ideaText(world.ideas[proposal.extraParent], data) } };
     }
     const parents = proposal.extraParent ? [idea.key, proposal.extraParent] : [idea.key];
-    heard = registerIdea(sim, proposal.shape, idea.lineage, parents, world.day);
+    heard = registerIdea(sim, proposal.shape, idea.lineage, parents, world.day, op);
     bumpStat(world.stats.triggers, idea.lineage, op);
   }
 

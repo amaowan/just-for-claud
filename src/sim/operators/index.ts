@@ -28,6 +28,8 @@ export const REGULAR_OPERATORS: OperatorId[] = [
 
 /** Proposals that are valid ideas and actually change something. */
 export function validProposals(op: OperatorId, ctx: OperatorContext): Proposal[] {
+  // A version produced by an operator cannot be changed by that same operator again right away.
+  if (ctx.idea.viaOp === op) return [];
   const out: Proposal[] = [];
   const seen = new Set<string>([ctx.idea.key]);
   for (const p of OPERATORS[op].propose(ctx)) {

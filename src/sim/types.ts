@@ -84,6 +84,8 @@ export interface Idea extends IdeaShape {
   lineage: string;
   parents: string[];
   bornDay: number;
+  /** Operator that first produced this version (absent for told / original ideas). */
+  viaOp?: OperatorId;
 }
 
 // ---------- People and places ----------

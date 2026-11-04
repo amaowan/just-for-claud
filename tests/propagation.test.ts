@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getGameData } from '../src/gameData.ts';
+import { CONFIG } from '../src/sim/config.ts';
 import { coreKey } from '../src/sim/idea.ts';
 import {
   acceptanceProbability, listenerCount, mutationProbability, propagateDay, tellByPlayer,
@@ -27,9 +28,10 @@ describe('propagation formulas', () => {
     expect(acceptanceProbability(1, 1, 1.2, 0, false)).toBe(1); // clamped
   });
 
-  it('mutation = 0.1 + 0.4 × imagination + 0.3 × (1 − clarity)', () => {
-    expect(mutationProbability({ imagination: 0.5, stubbornness: 0.9 }, giant)).toBeCloseTo(0.1 + 0.2 + 0.3 * 0.15);
-    expect(mutationProbability({ imagination: 0, stubbornness: 0 }, { ...giant, modifiers: [] })).toBeCloseTo(0.1);
+  it('mutation = scale × (base + 0.4 × imagination + 0.3 × (1 − clarity))', () => {
+    const { mutationScale: k, mutationBase: b } = CONFIG.propagation;
+    expect(mutationProbability({ imagination: 0.5, stubbornness: 0.9 }, giant)).toBeCloseTo(k * (b + 0.2 + 0.3 * 0.15));
+    expect(mutationProbability({ imagination: 0, stubbornness: 0 }, { ...giant, modifiers: [] })).toBeCloseTo(k * b);
   });
 });
 

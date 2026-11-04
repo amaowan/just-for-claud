@@ -29,7 +29,11 @@ export const CONFIG = {
     fitMatch: 1.2,
     fitNeutral: 1.0,
     fitConflict: 0.5,
-    /** Mutation chance = base + imagination * k1 + (1 - clarity) * k2 - stubbornness * k3. */
+    /**
+     * Mutation chance = scale * (base + imagination * k1 + (1 - clarity) * k2 - stubbornness * k3).
+     * GDD initial values: base 0.1, k1 0.4, k2 0.3, scale 1. Lowered after the first balance report.
+     */
+    mutationScale: 1,
     mutationBase: 0.1,
     mutationImagination: 0.4,
     mutationUnclarity: 0.3,
@@ -55,7 +59,7 @@ export const CONFIG = {
       ritualize: 1,
       fuse: 1,
       personify: 1,
-      comedify: 1,
+      comedify: 0.3,
       simplify: 1,
       invert: 1,
     } satisfies Record<OperatorId, number>,
@@ -65,7 +69,7 @@ export const CONFIG = {
     skepticMaxGullibility: 0.3,
     /** Independent chance a skeptic inverts the relation when retelling. */
     invertChance: 0.02,
-    /** Simplify applies when an idea has more than this many blocks. */
+    /** Simplify applies when an idea has more than this many blocks AND its modifiers are at the cap. */
     simplifyAboveBlocks: 4,
   },
 

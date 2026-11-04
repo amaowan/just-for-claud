@@ -13,3 +13,16 @@ describe('chooseMutation', () => {
     expect(new Set(a)).toEqual(new Set(['localize', 'exaggerate', 'comedify', 'professionFilter']));
   });
 });
+
+describe('no operator twice in a row', () => {
+  it('a version made by comedify cannot be comedified again, but other operators still apply', async () => {
+    const { validProposals } = await import('../../src/sim/operators/index.ts');
+    const { idea } = await import('./helpers.ts');
+    const made = { ...idea({ modifiers: ['sing', 'sneeze'] }), viaOp: 'comedify' as const };
+    const child = npc({ age: 'child' });
+    expect(validProposals('comedify', ctx({ idea: made, listener: child }))).toEqual([]);
+    expect(validProposals('simplify', ctx({ idea: made, listener: child })).length).toBeGreaterThan(0);
+    const simplified = { ...idea({ modifiers: ['sing', 'huge'] }), viaOp: 'simplify' as const };
+    expect(validProposals('simplify', ctx({ idea: simplified }))).toEqual([]);
+  });
+});
