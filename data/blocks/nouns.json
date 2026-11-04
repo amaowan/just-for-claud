@@ -12,6 +12,10 @@
   { "id": "hearth", "text": "炉火", "domain": "fire", "tone": "joy", "kind": "abstract", "personifyTo": "fireSpirit", "ability": "点燃炉火", "act": "点起炉火" },
   { "id": "song", "text": "歌", "domain": "human", "tone": "joy", "kind": "thing", "ability": "唱歌", "act": "唱歌" },
 
+  { "id": "offering", "text": "供品", "domain": "human", "tone": "joy", "kind": "thing", "act": "摆上供品", "derived": true },
+  { "id": "story", "text": "故事", "domain": "human", "tone": "joy", "kind": "thing", "ability": "讲故事", "act": "讲故事", "derived": true },
+  { "id": "feather", "text": "羽毛", "domain": "beast", "tone": "comic", "kind": "thing", "act": "挥动羽毛", "derived": true },
+  { "id": "pollen", "text": "花粉", "domain": "forest", "tone": "comic", "kind": "thing", "act": "撒花粉", "derived": true },
   { "id": "shell", "text": "贝壳", "domain": "water", "tone": "joy", "kind": "thing", "role": "smallThing", "act": "在门口挂上贝壳", "derived": true },
   { "id": "windSpirit", "text": "风精灵", "domain": "wind", "tone": "comic", "kind": "spirit", "role": "spirit", "deifyTo": "windGod", "derived": true },
   { "id": "rainSpirit", "text": "雨精灵", "domain": "sky", "tone": "joy", "kind": "spirit", "role": "spirit", "deifyTo": "rainGod", "derived": true },

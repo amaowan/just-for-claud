@@ -50,9 +50,11 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 export function festivalName(sim: Sim, village: string, core: string): string {
   const idea = topVersion(sim, village, core) ?? anyVersion(sim, core);
   const t = sim.data.text.report;
-  return fill(t.festivalName as string, {
+  const c = parseCore(core);
+  return fill(t.festivalName[c.relation] ?? '{seasonShort}{subject}节', {
     seasonShort: seasonText(idea?.season, sim.data, true),
-    subject: sim.data.nouns[parseCore(core).subject].text,
+    subject: sim.data.nouns[c.subject].text,
+    object: sim.data.nouns[c.object].text,
   });
 }
 

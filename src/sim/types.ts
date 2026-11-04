@@ -145,6 +145,13 @@ export interface FusionRecipe {
   };
 }
 
+/** 修饰 → 愿望: a deified subject with this modifier can be ritualized into this wish. */
+export interface Wish {
+  modifierFamily: string;
+  relation: string;
+  object: string;
+}
+
 export interface RelationCompat {
   subjectKinds: NounKind[];
   objectKinds: NounKind[];

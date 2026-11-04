@@ -10,7 +10,10 @@
   "common": "「{idea}」在{village}成了常识，{coverage}的人都这么说。",
   "custom": "{village}有了新习俗：{idea}。",
   "festival": "{village}的日历上多了一个节日：「{festival}」。",
-  "festivalName": "{seasonShort}{subject}节",
+  "festivalName": {
+    "like": "{seasonShort}{object}会",
+    "fear": "{seasonShort}避{object}节"
+  },
   "placeName": "{village}的人开始把{place}叫作「{name}」。",
   "placeNameName": "{other}{place}",
   "coverageChange": "「{idea}」在{village}的相信者从 {before} 人变成了 {after} 人。",
