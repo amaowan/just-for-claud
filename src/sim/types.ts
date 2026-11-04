@@ -167,6 +167,8 @@ export interface VillageCoreState {
   everCommonDay?: number;
   /** Day at which coverage was first seen >= customCoverage in the current unbroken run. */
   above50Since?: number;
+  /** Same, for the manifestation coverage threshold. */
+  manifestSince?: number;
   customDay?: number;
   festivalDay?: number;
   placeNameDay?: number;
