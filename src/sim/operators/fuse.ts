@@ -1,7 +1,6 @@
 // 融合: the heard idea merges with another idea the listener already believes.
 import { CONFIG } from '../config.ts';
 import { coreKey, ideaDomains, sharesBlock, sharesDomain } from '../idea.ts';
-import { ideaText } from '../text.ts';
 import type { FusionMatcher, Idea, IdeaShape } from '../types.ts';
 import type { GameData } from '../data.ts';
 import type { Operator, Proposal } from './types.ts';
@@ -42,7 +41,6 @@ export const fuse: Operator = {
     const out: Proposal[] = [];
     for (const other of ctx.listenerIdeas) {
       if (other.core === idea.core) continue;
-      const params = { other: ideaText(other, data) };
       const recipeShapes: IdeaShape[] = [];
       for (const r of data.fusion) {
         for (const [a, b] of [[idea, other], [other, idea]] as const) {
@@ -77,7 +75,7 @@ export const fuse: Operator = {
         }
       }
       shapes = shapes.filter((s) => coreKey(s) !== other.core);
-      for (const shape of shapes) out.push({ shape, params, extraParent: other.key });
+      for (const shape of shapes) out.push({ shape, params: {}, extraParent: other.key }); // 'other' text is filled in once chosen
     }
     return out;
   },
