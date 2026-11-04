@@ -1,10 +1,12 @@
 // Balance report: N seeds, tell 「巨人 · 住在 · 山 · 会唱歌的」 once in the fishing village, simulate Y years.
-// Usage: npm run balance [-- <seeds=100> <years=20>]
+// Usage: npm run balance [-- <seeds=100> <years=20> [json-out-path]]
 // Listener for seed s is the (s mod 10)-th fishing-village resident, so every villager is used equally.
 import { fork } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { DAYS_PER_YEAR } from '../src/sim/config.ts';
+import { parseCore } from '../src/sim/idea.ts';
 import { tellByPlayer } from '../src/sim/propagation.ts';
 import { advanceDays } from '../src/sim/simulate.ts';
 import type { IdeaShape, OperatorId } from '../src/sim/types.ts';
@@ -13,14 +15,19 @@ import { loadGameDataFromDisk } from './loadData.ts';
 
 const SHAPE: IdeaShape = { subject: 'giant', relation: 'liveIn', object: 'mountain', modifiers: ['sing'], form: 'statement' };
 
-interface RunResult {
+export interface RunResult {
   seed: number;
   listener: string;
   accepted: boolean;
   variants: number;
   cores: number;
   reached: { common: number; custom: number; festival: number; placeName: number; manifest: number };
-  deities: number;
+  activeCoresEnd: Record<string, number>;
+  customAny: boolean;
+  customPlayer: boolean;
+  placesNamed: number;
+  maxRenamesPerPlace: number;
+  deityBirths: number;
   triggers: Partial<Record<OperatorId, number>>;
   acceptedMutations: Partial<Record<OperatorId, number>>;
   finalBelievers: number;
@@ -42,25 +49,43 @@ function runOne(seed: number, years: number): RunResult {
   for (const r of world.history) if (r.lineage === lineage && r.accepted) keys.add(r.after);
   const cores = new Set([...keys].map((k) => world.ideas[k].core));
   const reached = { common: 0, custom: 0, festival: 0, placeName: 0, manifest: 0 };
+  const placeEvents = world.events.filter((e) => e.type === 'placeName');
   for (const core of cores) {
     const states = data.villageIds.map((v) => world.villageCores[v][core]).filter(Boolean);
     if (states.some((s) => s.everCommonDay !== undefined)) reached.common++;
     if (states.some((s) => s.customDay !== undefined)) reached.custom++;
     if (states.some((s) => s.festivalDay !== undefined)) reached.festival++;
-    if (states.some((s) => s.placeNameDay !== undefined)) reached.placeName++;
+    if (placeEvents.some((e) => 'core' in e && e.core === core)) reached.placeName++;
     if (states.some((s) => s.manifestDay !== undefined)) reached.manifest++;
+  }
+  // Place names: group naming events by (village, place noun). Extra events for a place are renames.
+  const perPlace = new Map<string, number>();
+  for (const e of placeEvents) {
+    if (!('core' in e) || !('village' in e)) continue;
+    const c = parseCore(e.core);
+    const place = data.nouns[c.object].kind === 'place' ? c.object : c.subject;
+    const k = `${e.village}|${place}`;
+    perPlace.set(k, (perPlace.get(k) ?? 0) + 1);
   }
   let finalBelievers = 0;
   for (const id of data.npcIds) {
     for (const b of Object.values(world.beliefs[id])) if (world.ideas[b.ideaKey].lineage === lineage) finalBelievers++;
   }
+  const activeCoresEnd: Record<string, number> = {};
+  for (const v of data.villageIds) activeCoresEnd[v] = Object.values(world.villageCores[v]).filter((c) => c.believers > 0).length;
+  const customEvents = world.events.filter((e) => e.type === 'custom');
   return {
     seed, listener,
     accepted: told.status === 'accepted',
     variants: Math.max(0, keys.size - 1),
     cores: cores.size,
     reached,
-    deities: Object.keys(world.deities).filter((c) => cores.has(c)).length,
+    activeCoresEnd,
+    customAny: customEvents.length > 0,
+    customPlayer: customEvents.some((e) => 'core' in e && cores.has(e.core)),
+    placesNamed: perPlace.size,
+    maxRenamesPerPlace: Math.max(0, ...[...perPlace.values()].map((n) => n - 1)),
+    deityBirths: world.events.filter((e) => e.type === 'deity').length,
     triggers: world.stats.triggers[lineage] ?? {},
     acceptedMutations: world.stats.acceptedMutations[lineage] ?? {},
     finalBelievers,
@@ -80,6 +105,7 @@ if (process.argv[2] === '--worker') {
 // ---------- main ----------
 const nSeeds = Number(process.argv[2] ?? 100);
 const years = Number(process.argv[3] ?? 20);
+const jsonOut = process.argv[4];
 const seeds = Array.from({ length: nSeeds }, (_, i) => i + 1);
 const workers = Math.min(availableParallelism(), nSeeds);
 const self = fileURLToPath(import.meta.url);
@@ -98,6 +124,7 @@ results.sort((a, b) => a.seed - b.seed);
 const data = loadGameDataFromDisk();
 const L = data.text.labels;
 const mean = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
+const median = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : 0; };
 const f1 = (x: number) => x.toFixed(1);
 const pctOf = (a: number, b: number) => (b ? `${((100 * a) / b).toFixed(1)}%` : '—');
 const acc = results.filter((r) => r.accepted);
@@ -108,44 +135,65 @@ function sumOps(key: 'triggers' | 'acceptedMutations', rs: RunResult[]) {
   return Object.entries(t).sort((a, b) => b[1] - a[1]);
 }
 
-const totalCores = acc.reduce((s, r) => s + r.cores, 0);
-const stageRow = (label: string, k: keyof RunResult['reached']) => {
-  const n = acc.reduce((s, r) => s + r.reached[k], 0);
-  const runs = acc.filter((r) => r.reached[k] > 0).length;
-  return `| ${label} | ${n} / ${totalCores} = ${pctOf(n, totalCores)} | ${f1(mean(acc.map((r) => (r.cores ? r.reached[k] / r.cores : 0)) ) * 100)}% | ${runs} / ${acc.length} |`;
+const activeAll = results.flatMap((r) => Object.values(r.activeCoresEnd));
+const summary = {
+  seeds: nSeeds, years, seconds: (Date.now() - t0) / 1000,
+  acceptRate: acc.length / nSeeds,
+  variantsMean: mean(acc.map((r) => r.variants)),
+  variantsMedian: median(acc.map((r) => r.variants)),
+  variantsMin: Math.min(...acc.map((r) => r.variants)),
+  variantsMax: Math.max(...acc.map((r) => r.variants)),
+  variantsInTarget: acc.filter((r) => r.variants >= 20 && r.variants <= 40).length / (acc.length || 1),
+  coresMean: mean(acc.map((r) => r.cores)),
+  activeCoresMean: mean(activeAll),
+  activeCoresMin: Math.min(...activeAll),
+  activeCoresMax: Math.max(...activeAll),
+  activeCoresInTarget: activeAll.filter((n) => n >= 3 && n <= 6).length / activeAll.length,
+  customRunRate: results.filter((r) => r.customAny).length / nSeeds,
+  customPlayerRunRate: acc.filter((r) => r.customPlayer).length / (acc.length || 1),
+  placesNamedMean: mean(results.map((r) => r.placesNamed)),
+  placesNamedInTarget: results.filter((r) => r.placesNamed >= 1 && r.placesNamed <= 3).length / nSeeds,
+  maxRenames: Math.max(...results.map((r) => r.maxRenamesPerPlace)),
+  renameOkRate: results.filter((r) => r.maxRenamesPerPlace <= 1).length / nSeeds,
+  deityMean: mean(results.map((r) => r.deityBirths)),
+  deityMax: Math.max(...results.map((r) => r.deityBirths)),
+  deityInTarget: results.filter((r) => r.deityBirths <= 2).length / nSeeds,
+  finalBelieversMean: mean(acc.map((r) => r.finalBelievers)),
+  evictionsMean: mean(results.map((r) => r.evictions)),
+  stages: Object.fromEntries((['common', 'custom', 'festival', 'placeName', 'manifest'] as const).map((k) => {
+    const total = acc.reduce((s, r) => s + r.cores, 0);
+    return [k, total ? acc.reduce((s, r) => s + r.reached[k], 0) / total : 0];
+  })),
+  triggers: sumOps('triggers', acc).map(([op, n]) => [op, n / (acc.length || 1)]),
+  acceptedMutations: sumOps('acceptedMutations', acc).map(([op, n]) => [op, n / (acc.length || 1)]),
 };
-const triggers = sumOps('triggers', acc);
-const accepted = sumOps('acceptedMutations', acc);
-const totalTriggers = triggers.reduce((s, [, n]) => s + n, 0);
+if (jsonOut) writeFileSync(jsonOut, JSON.stringify({ summary, results }, null, 1));
 
+const S = summary;
+const totalTriggers = S.triggers.reduce((s, [, n]) => s + (n as number), 0);
 const out: string[] = [];
 out.push(`### 平衡性报告：${nSeeds} 个种子 × ${years} 年`);
 out.push('');
-out.push(`在渔村讲一次「山里住着会唱歌的巨人」（巨人 · 住在 · 山 · 会唱歌的），种子 1–${nSeeds}，第 s 个种子讲给渔村第 (s mod 10) 位村民，每位村民各 ${nSeeds / 10} 次。数值全部为当前 config 初始值。用时 ${f1((Date.now() - t0) / 1000)} 秒（${workers} 进程）。`);
+out.push(`在渔村讲一次「山里住着会唱歌的巨人」，种子 1–${nSeeds}，第 s 个种子讲给渔村第 (s mod 10) 位村民。用时 ${f1(S.seconds)} 秒（${workers} 进程）。谱系相关指标只统计讲述被接受的 ${acc.length} 局；世界级指标统计全部 ${nSeeds} 局。`);
 out.push('');
-out.push(`- 玩家这一次讲述被接受：${acc.length} / ${nSeeds}（${pctOf(acc.length, nSeeds)}）。未被接受的种子里这个想法完全没有传开，下面的统计只算被接受的 ${acc.length} 局。`);
-out.push(`- 平均产生变体（被至少一人相信过的不同版本，不含原版）：**${f1(mean(acc.map((r) => r.variants)))}** 个（最少 ${Math.min(...acc.map((r) => r.variants))}，最多 ${Math.max(...acc.map((r) => r.variants))}）`);
-out.push(`- 平均产生想法核心（主体+关系+对象+形态）：**${f1(mean(acc.map((r) => r.cores)))}** 个`);
-out.push(`- ${years} 年后仍相信这条谱系某个版本的人数（共 21 人）：平均 ${f1(mean(acc.map((r) => r.finalBelievers)))}`);
-out.push(`- 因混乱度上限被挤掉的核心（两村合计，含所有谱系）：平均 ${f1(mean(acc.map((r) => r.evictions)))} 次/局`);
-out.push(`- 神化后诞生神灵：${acc.reduce((s, r) => s + r.deities, 0)} 次（${acc.filter((r) => r.deities > 0).length} 局出现）`);
+out.push('| 指标 | 结果 | 目标 |');
+out.push('|---|---|---|');
+out.push(`| 玩家讲一次被接受 | ${pctOf(acc.length, nSeeds)} | ≥ 75% |`);
+out.push(`| 每条谱系的变体数 | 平均 ${f1(S.variantsMean)}，中位 ${S.variantsMedian}（${S.variantsMin}–${S.variantsMax}），${pctOf(S.variantsInTarget * 100, 100)} 的局落在目标内 | 20–40 |`);
+out.push(`| 20 年后每村活跃核心 | 平均 ${f1(S.activeCoresMean)}（${S.activeCoresMin}–${S.activeCoresMax}），${pctOf(S.activeCoresInTarget * 100, 100)} 的村落在目标内 | 3–6 |`);
+out.push(`| 出现习俗的局（任何想法） | ${pctOf(S.customRunRate * 100, 100)}（玩家这条谱系：${pctOf(S.customPlayerRunRate * 100, 100)}） | ≥ 30% |`);
+out.push(`| 每局地名数 | 平均 ${f1(S.placesNamedMean)}，${pctOf(S.placesNamedInTarget * 100, 100)} 的局在 1–3 个 | 1–3 |`);
+out.push(`| 同一地点最多改名次数 | 最多 ${S.maxRenames}，${pctOf(S.renameOkRate * 100, 100)} 的局 ≤ 1 | ≤ 1 |`);
+out.push(`| 每局神灵诞生 | 平均 ${f1(S.deityMean)}，最多 ${S.deityMax}，${pctOf(S.deityInTarget * 100, 100)} 的局 ≤ 2 | 0–2 |`);
 out.push('');
-out.push('**想法核心达到各沉淀阶段的比例**（某核心在任一村达到过即算）');
+out.push(`其他：每局平均想法核心 ${f1(S.coresMean)} 个；${years} 年后仍相信这条谱系某个版本的人数平均 ${f1(S.finalBelieversMean)} / 21；混乱度上限挤掉核心平均 ${f1(S.evictionsMean)} 次/局。`);
 out.push('');
-out.push('| 阶段 | 全部核心合计 | 每局比例的平均 | 至少有一个核心达到的局数 |');
+out.push(`谱系核心达到各阶段的比例：常识 ${pctOf(S.stages.common * 100, 100)}，习俗 ${pctOf(S.stages.custom * 100, 100)}，节日 ${pctOf(S.stages.festival * 100, 100)}，地名 ${pctOf(S.stages.placeName * 100, 100)}，成真 ${pctOf(S.stages.manifest * 100, 100)}。`);
+out.push('');
+out.push('| 算子 | 每局触发 | 占比 | 每局被相信 |');
 out.push('|---|---|---|---|');
-out.push(stageRow('常识（覆盖率 ≥ 30%）', 'common'));
-out.push(stageRow('习俗（仪式化 + 50% 持续 5 年）', 'custom'));
-out.push(stageRow('节日（习俗满 15 年）', 'festival'));
-out.push(stageRow('地名（常识 + 提及 ≥ 200 次）', 'placeName'));
-out.push(stageRow('成真（50% 持续 5 年）', 'manifest'));
-out.push('');
-out.push('**最常被触发的算子**（这条谱系的所有转述，含没被相信的）');
-out.push('');
-out.push('| 排名 | 算子 | 触发次数（每局平均） | 占全部触发 | 被相信的次数（每局平均） |');
-out.push('|---|---|---|---|---|');
-triggers.forEach(([op, n], i) => {
-  const a = accepted.find(([o]) => o === op)?.[1] ?? 0;
-  out.push(`| ${i < 3 ? `**${i + 1}**` : i + 1} | ${L.operators[op]} | ${f1(n / acc.length)} | ${pctOf(n, totalTriggers)} | ${f1(a / acc.length)} |`);
-});
+for (const [op, n] of S.triggers) {
+  const a = S.acceptedMutations.find(([o]) => o === op)?.[1] ?? 0;
+  out.push(`| ${L.operators[op as string]} | ${f1(n as number)} | ${pctOf(n as number, totalTriggers)} | ${f1(a as number)} |`);
+}
 console.log(out.join('\n'));
