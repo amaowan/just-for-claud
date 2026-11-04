@@ -1,0 +1,10 @@
+[
+  { "id": "liveIn", "text": "住在", "tone": "awe", "manifest": "beingOrPlace", "ritualizable": false },
+  { "id": "can", "text": "能够", "tone": "awe", "manifest": "skill", "ritualizable": false },
+  { "id": "comeFrom", "text": "来自", "tone": "awe", "manifest": "item", "ritualizable": false },
+  { "id": "guard", "text": "守护", "tone": "awe", "manifest": "charm", "ritualizable": false },
+  { "id": "like", "text": "喜欢", "tone": "joy", "manifest": "ritual", "inverse": "fear", "ritualizable": true },
+  { "id": "fear", "text": "害怕", "tone": "fear", "manifest": "taboo", "inverse": "like", "ritualizable": true },
+  { "id": "help", "text": "帮助", "tone": "joy", "manifest": "companion", "inverse": "steal", "ritualizable": false },
+  { "id": "steal", "text": "偷走", "tone": "comic", "manifest": "prank", "inverse": "help", "ritualizable": false }
+]

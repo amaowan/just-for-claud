@@ -1,0 +1,23 @@
+{
+  "modifierJoiner": "、",
+  "statement": {
+    "liveIn": "{O}里住着{S}",
+    "can": "{S}能{ability}",
+    "comeFrom": "{S}来自{O}",
+    "guard": "{S}守护着{O}",
+    "like": "{S}喜欢{O}",
+    "fear": "{S}害怕{O}",
+    "help": "{S}会帮助{O}",
+    "steal": "{S}会偷走{O}"
+  },
+  "ritual": {
+    "like": "每到{season}，人们要为{S}{act}",
+    "fear": "每到{season}，人们都不许{act}，免得吓着{S}"
+  },
+  "ritualDefaultAct": {
+    "like": "献上{O}",
+    "fear": "提起{O}"
+  },
+  "seasons": { "spring": "春天", "summer": "夏天", "autumn": "秋天", "winter": "冬天" },
+  "seasonShort": { "spring": "春日", "summer": "夏日", "autumn": "秋日", "winter": "冬日" }
+}

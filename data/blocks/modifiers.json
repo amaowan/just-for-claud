@@ -1,0 +1,45 @@
+[
+  { "id": "sing", "text": "会唱歌的", "domain": "human", "tone": "joy", "family": "sing", "level": 1, "next": "sing2" },
+  { "id": "sing2", "text": "歌声能唤雨的", "domain": "sky", "tone": "awe", "family": "sing", "level": 2, "next": "sing3", "derived": true },
+  { "id": "sing3", "text": "歌声能移山的", "domain": "mountain", "tone": "awe", "family": "sing", "level": 3, "derived": true },
+
+  { "id": "sneeze", "text": "爱打喷嚏的", "domain": "wind", "tone": "comic", "family": "sneeze", "level": 1, "next": "sneeze2" },
+  { "id": "sneeze2", "text": "一打喷嚏就刮风的", "domain": "wind", "tone": "comic", "family": "sneeze", "level": 2, "next": "sneeze3", "derived": true },
+  { "id": "sneeze3", "text": "喷嚏能吹翻渔船的", "domain": "wind", "tone": "comic", "family": "sneeze", "level": 3, "derived": true },
+
+  { "id": "talk", "text": "会说话的", "domain": "human", "tone": "joy", "family": "talk", "level": 1, "next": "talk2" },
+  { "id": "talk2", "text": "能说一百种话的", "domain": "human", "tone": "joy", "family": "talk", "level": 2, "derived": true },
+
+  { "id": "huge", "text": "巨大的", "domain": "mountain", "tone": "awe", "family": "huge", "level": 1, "next": "huge2" },
+  { "id": "huge2", "text": "比山还高的", "domain": "mountain", "tone": "awe", "family": "huge", "level": 2, "next": "huge3", "derived": true },
+  { "id": "huge3", "text": "能用肩膀扛起天的", "domain": "sky", "tone": "awe", "family": "huge", "level": 3, "derived": true },
+
+  { "id": "glow", "text": "发光的", "domain": "sky", "tone": "awe", "family": "glow", "level": 1, "next": "glow2" },
+  { "id": "glow2", "text": "像月亮一样亮的", "domain": "sky", "tone": "awe", "family": "glow", "level": 2, "next": "glow3", "derived": true },
+  { "id": "glow3", "text": "能照亮整片海的", "domain": "water", "tone": "awe", "family": "glow", "level": 3, "derived": true },
+
+  { "id": "ancient", "text": "古老的", "domain": "forest", "tone": "awe", "family": "ancient", "level": 1, "next": "ancient2" },
+  { "id": "ancient2", "text": "比村子还老的", "domain": "forest", "tone": "awe", "family": "ancient", "level": 2, "next": "ancient3", "derived": true },
+  { "id": "ancient3", "text": "从世界开始就在的", "domain": "sky", "tone": "awe", "family": "ancient", "level": 3, "derived": true },
+
+  { "id": "solemn", "text": "庄严的", "domain": "mountain", "tone": "awe", "family": "solemn", "level": 1, "next": "solemn2" },
+  { "id": "solemn2", "text": "让群山低头的", "domain": "mountain", "tone": "awe", "family": "solemn", "level": 2, "derived": true },
+
+  { "id": "crybaby", "text": "爱哭的", "domain": "water", "tone": "comic", "family": "crybaby", "level": 1, "next": "crybaby2" },
+  { "id": "crybaby2", "text": "一哭就下雨的", "domain": "sky", "tone": "comic", "family": "crybaby", "level": 2, "derived": true },
+
+  { "id": "ticklish", "text": "怕痒的", "domain": "beast", "tone": "comic", "family": "ticklish", "level": 1, "next": "ticklish2" },
+  { "id": "ticklish2", "text": "一碰就笑个不停的", "domain": "beast", "tone": "comic", "family": "ticklish", "level": 2, "derived": true },
+
+  { "id": "greedy", "text": "贪吃的", "domain": "human", "tone": "comic", "family": "greedy", "level": 1, "next": "greedy2" },
+  { "id": "greedy2", "text": "能吃下一整船鱼的", "domain": "water", "tone": "comic", "family": "greedy", "level": 2, "derived": true },
+
+  { "id": "knock", "text": "会敲击的", "domain": "mountain", "tone": "joy", "family": "knock", "level": 1, "derived": true },
+  { "id": "whistle", "text": "会吹口哨的", "domain": "wind", "tone": "joy", "family": "whistle", "level": 1, "derived": true },
+  { "id": "weave", "text": "会织布的", "domain": "human", "tone": "joy", "family": "weave", "level": 1, "derived": true },
+  { "id": "heal", "text": "会治病的", "domain": "forest", "tone": "awe", "family": "heal", "level": 1, "derived": true },
+  { "id": "oreGlow", "text": "像矿石一样闪亮的", "domain": "mountain", "tone": "awe", "family": "oreGlow", "level": 1, "derived": true },
+  { "id": "harvest", "text": "能让庄稼长高的", "domain": "sky", "tone": "joy", "family": "harvest", "level": 1, "derived": true },
+  { "id": "oldTune", "text": "会唱古调的", "domain": "human", "tone": "awe", "family": "oldTune", "level": 1, "derived": true },
+  { "id": "guardMiners", "text": "守护矿工的", "domain": "mountain", "tone": "awe", "family": "guardMiners", "level": 1, "derived": true }
+]

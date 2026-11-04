@@ -1,0 +1,27 @@
+{
+  "professions": {
+    "fisher": "渔夫", "miner": "矿工", "farmer": "农夫", "weaver": "织工",
+    "bard": "吟游诗人", "merchant": "商人", "herbalist": "草药师", "keeper": "守庙人"
+  },
+  "ages": { "child": "孩童", "youth": "青年", "adult": "中年", "elder": "老年" },
+  "domains": {
+    "mountain": "山", "water": "水", "wind": "风", "sky": "天",
+    "fire": "火", "forest": "林", "human": "人", "beast": "兽"
+  },
+  "tones": { "awe": "敬畏", "joy": "欢乐", "fear": "恐惧", "comic": "滑稽" },
+  "operators": {
+    "localize": "本地化", "professionFilter": "职业滤镜", "exaggerate": "夸大", "deify": "神化",
+    "ritualize": "仪式化", "fuse": "融合", "personify": "人格化", "comedify": "滑稽化",
+    "simplify": "简化", "invert": "反转"
+  },
+  "stages": {
+    "none": "—", "rumor": "流言", "common": "常识", "custom": "习俗", "festival": "节日"
+  },
+  "placeName": "地名",
+  "manifest": {
+    "beingOrPlace": "生物或地点", "skill": "技艺", "item": "物品", "charm": "护身符",
+    "ritual": "仪式与节日", "taboo": "禁忌", "companion": "伙伴", "prank": "怪事"
+  },
+  "player": "旅人",
+  "traveling": "在路上"
+}

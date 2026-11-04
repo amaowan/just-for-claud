@@ -1,0 +1,42 @@
+{
+  "localize": [
+    "在{village}，谁见过{from}呢？{listener}听成了{to}。",
+    "{listener}没见过{from}，干脆换成了{village}人都熟悉的{to}。"
+  ],
+  "professionFilter": [
+    "{listener}是{profession}，把「{from}」听成了「{to}」。",
+    "到底是{profession}，{listener}一听就觉得那该是「{to}」，而不是「{from}」。"
+  ],
+  "exaggerate": [
+    "{listener}越听越激动，「{from}」变成了「{to}」。",
+    "{listener}转述时忍不住加了把劲：「{from}」？不，是「{to}」！"
+  ],
+  "deify": [
+    "大家都这么信，{listener}觉得{from}一定是神——{to}。",
+    "{listener}压低声音说：那可不是普通的{from}，那是{to}。"
+  ],
+  "ritualize": [
+    "{listener}觉得光说不够，得做点什么。",
+    "{listener}说：既然如此，咱们可不能怠慢。"
+  ],
+  "fuse": [
+    "{listener}想起了另一个说法「{other}」，两件事在脑子里合成了一件。",
+    "{listener}一拍大腿：这和「{other}」不就是一回事嘛！"
+  ],
+  "personify": [
+    "{listener}觉得{from}一定是活的——{to}。",
+    "{listener}坚持说，{from}其实是{to}在捣鬼。"
+  ],
+  "comedify": [
+    "{listener}忍不住笑出声，添了一句「{to}」。",
+    "{listener}觉得「{from}」太严肃了，改成了「{to}」。"
+  ],
+  "simplify": [
+    "太长了，{listener}记不住，「{from}」被丢掉了。",
+    "{listener}只记住了一半，「{from}」没了。"
+  ],
+  "invert": [
+    "{teller}本来就不太信，讲着讲着说反了：「{from}」变成了「{to}」。",
+    "{teller}撇撇嘴：「{from}」？我看是「{to}」才对。"
+  ]
+}

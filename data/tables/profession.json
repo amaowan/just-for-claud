@@ -1,0 +1,62 @@
+{
+  "fisher": {
+    "domains": ["water", "wind"],
+    "rewrites": [
+      { "slot": "modifier", "from": "sing", "to": "whistle" },
+      { "slot": "modifier", "from": "huge", "to": "greedy2" },
+      { "slot": "relation", "from": "guard", "to": "help" }
+    ]
+  },
+  "miner": {
+    "domains": ["mountain", "fire"],
+    "rewrites": [
+      { "slot": "modifier", "from": "sing", "to": "knock" },
+      { "slot": "modifier", "from": "glow", "to": "oreGlow" },
+      { "slot": "relation", "from": "help", "to": "guard" }
+    ]
+  },
+  "farmer": {
+    "domains": ["sky", "forest"],
+    "rewrites": [
+      { "slot": "modifier", "from": "sing", "to": "harvest" },
+      { "slot": "modifier", "from": "glow", "to": "harvest" }
+    ]
+  },
+  "weaver": {
+    "domains": ["human"],
+    "rewrites": [
+      { "slot": "modifier", "from": "talk", "to": "weave" },
+      { "slot": "modifier", "from": "sing", "to": "weave" }
+    ]
+  },
+  "bard": {
+    "domains": ["human"],
+    "rewrites": [
+      { "slot": "modifier", "from": "talk", "to": "sing" },
+      { "slot": "modifier", "from": "sing", "to": "oldTune" },
+      { "slot": "modifier", "from": "solemn", "to": "oldTune" }
+    ]
+  },
+  "merchant": {
+    "domains": ["human"],
+    "rewrites": [
+      { "slot": "relation", "from": "guard", "to": "help" },
+      { "slot": "modifier", "from": "ancient", "to": "greedy" }
+    ]
+  },
+  "herbalist": {
+    "domains": ["forest", "beast"],
+    "rewrites": [
+      { "slot": "modifier", "from": "glow", "to": "heal" },
+      { "slot": "modifier", "from": "ancient", "to": "heal" }
+    ]
+  },
+  "keeper": {
+    "domains": ["sky", "mountain"],
+    "rewrites": [
+      { "slot": "modifier", "from": "sing", "to": "oldTune" },
+      { "slot": "modifier", "from": "talk", "to": "solemn" },
+      { "slot": "relation", "from": "help", "to": "guard" }
+    ]
+  }
+}
