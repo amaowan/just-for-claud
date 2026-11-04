@@ -1,0 +1,22 @@
+[
+  {
+    "a": { "modifierFamily": "sing" },
+    "b": { "noun": "rain" },
+    "result": { "subject": "a.subject", "relation": "can", "object": "rain", "modifiers": "a" }
+  },
+  {
+    "a": { "modifierFamily": "sneeze" },
+    "b": { "noun": "wind" },
+    "result": { "subject": "a.subject", "relation": "can", "object": "wind", "modifiers": "a" }
+  },
+  {
+    "a": { "modifierFamily": "crybaby" },
+    "b": { "noun": "rain" },
+    "result": { "subject": "rain", "relation": "comeFrom", "object": "a.subject", "modifiers": [] }
+  },
+  {
+    "a": { "modifierFamily": "glow" },
+    "b": { "noun": "skyLake" },
+    "result": { "subject": "a.subject", "relation": "liveIn", "object": "skyLake", "modifiers": "a" }
+  }
+]

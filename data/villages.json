@@ -1,0 +1,18 @@
+[
+  {
+    "id": "coast",
+    "name": "海岸渔村",
+    "environment": ["water", "wind"],
+    "initialBeliefs": [
+      { "subject": "rain", "relation": "comeFrom", "object": "skyLake", "modifiers": [], "form": "statement" }
+    ]
+  },
+  {
+    "id": "mine",
+    "name": "山地矿村",
+    "environment": ["mountain", "fire", "forest"],
+    "initialBeliefs": [
+      { "subject": "fox", "relation": "liveIn", "object": "mountain", "modifiers": ["guardMiners"], "form": "statement" }
+    ]
+  }
+]

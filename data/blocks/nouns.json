@@ -1,0 +1,25 @@
+[
+  { "id": "giant", "text": "巨人", "domain": "mountain", "tone": "awe", "kind": "creature", "role": "bigCreature", "deifyTo": "mountainGod" },
+  { "id": "whale", "text": "鲸", "domain": "water", "tone": "awe", "kind": "creature", "role": "bigCreature", "deifyTo": "seaGod" },
+  { "id": "fox", "text": "狐狸", "domain": "forest", "tone": "joy", "kind": "creature", "role": "smallCreature", "deifyTo": "forestGod" },
+  { "id": "seabird", "text": "海鸟", "domain": "water", "tone": "joy", "kind": "creature", "role": "smallCreature", "deifyTo": "seaGod" },
+  { "id": "mountain", "text": "山", "domain": "mountain", "tone": "awe", "kind": "place", "role": "bigPlace", "act": "登上山顶" },
+  { "id": "sea", "text": "海", "domain": "water", "tone": "awe", "kind": "place", "role": "bigPlace", "ability": "平息大海", "act": "向着大海鞠躬" },
+  { "id": "skyLake", "text": "天湖", "domain": "sky", "tone": "awe", "kind": "place", "act": "望着天湖许愿" },
+  { "id": "stone", "text": "石头", "domain": "mountain", "tone": "awe", "kind": "thing", "role": "smallThing", "ability": "听懂石头", "act": "在门口摆上石头" },
+  { "id": "wind", "text": "风", "domain": "wind", "tone": "comic", "kind": "abstract", "personifyTo": "windSpirit", "ability": "呼风", "act": "迎着风挂起彩带" },
+  { "id": "rain", "text": "雨", "domain": "sky", "tone": "awe", "kind": "abstract", "personifyTo": "rainSpirit", "ability": "唤雨", "act": "在院子里摆满水缸" },
+  { "id": "hearth", "text": "炉火", "domain": "fire", "tone": "joy", "kind": "abstract", "personifyTo": "fireSpirit", "ability": "点燃炉火", "act": "点起炉火" },
+  { "id": "song", "text": "歌", "domain": "human", "tone": "joy", "kind": "thing", "ability": "唱歌", "act": "唱歌" },
+
+  { "id": "shell", "text": "贝壳", "domain": "water", "tone": "joy", "kind": "thing", "role": "smallThing", "act": "在门口挂上贝壳", "derived": true },
+  { "id": "windSpirit", "text": "风精灵", "domain": "wind", "tone": "comic", "kind": "spirit", "role": "spirit", "deifyTo": "windGod", "derived": true },
+  { "id": "rainSpirit", "text": "雨精灵", "domain": "sky", "tone": "joy", "kind": "spirit", "role": "spirit", "deifyTo": "rainGod", "derived": true },
+  { "id": "fireSpirit", "text": "火精灵", "domain": "fire", "tone": "joy", "kind": "spirit", "role": "spirit", "deifyTo": "fireGod", "derived": true },
+  { "id": "mountainGod", "text": "山神", "domain": "mountain", "tone": "awe", "kind": "deity", "role": "deity", "derived": true },
+  { "id": "seaGod", "text": "海神", "domain": "water", "tone": "awe", "kind": "deity", "role": "deity", "derived": true },
+  { "id": "forestGod", "text": "林神", "domain": "forest", "tone": "awe", "kind": "deity", "role": "deity", "derived": true },
+  { "id": "windGod", "text": "风神", "domain": "wind", "tone": "awe", "kind": "deity", "role": "deity", "derived": true },
+  { "id": "rainGod", "text": "雨神", "domain": "sky", "tone": "awe", "kind": "deity", "role": "deity", "derived": true },
+  { "id": "fireGod", "text": "火神", "domain": "fire", "tone": "awe", "kind": "deity", "role": "deity", "derived": true }
+]

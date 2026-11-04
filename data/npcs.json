@@ -1,0 +1,49 @@
+{
+  "npcs": [
+    { "id": "c01", "name": "阿潮", "home": "coast", "profession": "fisher", "age": "adult", "gullibility": 0.6, "stubbornness": 0.4, "talkativeness": 0.6, "imagination": 0.4 },
+    { "id": "c02", "name": "老贝", "home": "coast", "profession": "fisher", "age": "elder", "gullibility": 0.2, "stubbornness": 0.9, "talkativeness": 0.3, "imagination": 0.2 },
+    { "id": "c03", "name": "小鳞", "home": "coast", "profession": "fisher", "age": "child", "gullibility": 0.9, "stubbornness": 0.1, "talkativeness": 0.7, "imagination": 0.9 },
+    { "id": "c04", "name": "海棠", "home": "coast", "profession": "weaver", "age": "youth", "gullibility": 0.5, "stubbornness": 0.4, "talkativeness": 0.5, "imagination": 0.7 },
+    { "id": "c05", "name": "苇婆", "home": "coast", "profession": "herbalist", "age": "elder", "gullibility": 0.4, "stubbornness": 0.7, "talkativeness": 0.4, "imagination": 0.5 },
+    { "id": "c06", "name": "灯叔", "home": "coast", "profession": "keeper", "age": "adult", "gullibility": 0.7, "stubbornness": 0.6, "talkativeness": 0.4, "imagination": 0.3 },
+    { "id": "c07", "name": "莺歌", "home": "coast", "profession": "bard", "age": "youth", "gullibility": 0.6, "stubbornness": 0.2, "talkativeness": 0.95, "imagination": 0.8 },
+    { "id": "c08", "name": "阿浪", "home": "coast", "profession": "fisher", "age": "youth", "gullibility": 0.5, "stubbornness": 0.3, "talkativeness": 0.6, "imagination": 0.5 },
+    { "id": "c09", "name": "小螺", "home": "coast", "profession": "weaver", "age": "child", "gullibility": 0.8, "stubbornness": 0.2, "talkativeness": 0.6, "imagination": 0.8 },
+    { "id": "c10", "name": "罗娜", "home": "coast", "profession": "farmer", "age": "adult", "gullibility": 0.25, "stubbornness": 0.6, "talkativeness": 0.5, "imagination": 0.3 },
+
+    { "id": "m01", "name": "铁伯", "home": "mine", "profession": "miner", "age": "elder", "gullibility": 0.3, "stubbornness": 0.9, "talkativeness": 0.3, "imagination": 0.2 },
+    { "id": "m02", "name": "阿岩", "home": "mine", "profession": "miner", "age": "adult", "gullibility": 0.5, "stubbornness": 0.5, "talkativeness": 0.6, "imagination": 0.4 },
+    { "id": "m03", "name": "小锤", "home": "mine", "profession": "miner", "age": "child", "gullibility": 0.9, "stubbornness": 0.1, "talkativeness": 0.8, "imagination": 0.9 },
+    { "id": "m04", "name": "琥珀", "home": "mine", "profession": "weaver", "age": "youth", "gullibility": 0.6, "stubbornness": 0.3, "talkativeness": 0.5, "imagination": 0.6 },
+    { "id": "m05", "name": "杉婶", "home": "mine", "profession": "herbalist", "age": "adult", "gullibility": 0.5, "stubbornness": 0.5, "talkativeness": 0.6, "imagination": 0.5 },
+    { "id": "m06", "name": "钟爷", "home": "mine", "profession": "keeper", "age": "elder", "gullibility": 0.6, "stubbornness": 0.8, "talkativeness": 0.4, "imagination": 0.3 },
+    { "id": "m07", "name": "云雀", "home": "mine", "profession": "bard", "age": "youth", "gullibility": 0.6, "stubbornness": 0.2, "talkativeness": 0.95, "imagination": 0.8 },
+    { "id": "m08", "name": "麦穗", "home": "mine", "profession": "farmer", "age": "adult", "gullibility": 0.6, "stubbornness": 0.4, "talkativeness": 0.5, "imagination": 0.4 },
+    { "id": "m09", "name": "小石榴", "home": "mine", "profession": "farmer", "age": "child", "gullibility": 0.85, "stubbornness": 0.15, "talkativeness": 0.7, "imagination": 0.85 },
+    { "id": "m10", "name": "卡托", "home": "mine", "profession": "miner", "age": "youth", "gullibility": 0.2, "stubbornness": 0.5, "talkativeness": 0.5, "imagination": 0.4 },
+
+    { "id": "t01", "name": "马可", "home": null, "profession": "merchant", "age": "adult", "gullibility": 0.5, "stubbornness": 0.4, "talkativeness": 0.8, "imagination": 0.6 }
+  ],
+  "ties": [
+    ["c01", "c02", 0.8], ["c01", "c03", 0.9], ["c01", "c08", 0.7], ["c01", "c06", 0.5],
+    ["c02", "c05", 0.7], ["c02", "c08", 0.5], ["c02", "c10", 0.6],
+    ["c03", "c09", 0.9], ["c03", "c07", 0.6],
+    ["c04", "c09", 0.8], ["c04", "c07", 0.7], ["c04", "c05", 0.5],
+    ["c05", "c06", 0.6],
+    ["c06", "c10", 0.5], ["c06", "c07", 0.4],
+    ["c07", "c08", 0.6], ["c07", "c10", 0.4],
+    ["c08", "c09", 0.4],
+
+    ["m01", "m02", 0.8], ["m01", "m06", 0.7], ["m01", "m10", 0.6],
+    ["m02", "m03", 0.9], ["m02", "m05", 0.6], ["m02", "m10", 0.7],
+    ["m03", "m09", 0.9], ["m03", "m07", 0.6],
+    ["m04", "m07", 0.7], ["m04", "m05", 0.6], ["m04", "m09", 0.5],
+    ["m05", "m08", 0.6],
+    ["m06", "m08", 0.5], ["m06", "m07", 0.4],
+    ["m07", "m08", 0.5], ["m07", "m10", 0.4],
+    ["m08", "m09", 0.8],
+
+    ["t01", "c01", 0.5], ["t01", "c04", 0.6], ["t01", "c07", 0.7],
+    ["t01", "m02", 0.5], ["t01", "m04", 0.6], ["t01", "m07", 0.7], ["t01", "m08", 0.4]
+  ]
+}

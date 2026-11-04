@@ -1,0 +1,12 @@
+{
+  "relations": {
+    "liveIn":   { "subjectKinds": ["creature", "deity", "spirit", "thing"], "objectKinds": ["place"] },
+    "can":      { "subjectKinds": ["creature", "deity", "spirit"], "objectKinds": ["place", "thing", "abstract"], "objectNeedsAbility": true },
+    "comeFrom": { "subjectKinds": ["creature", "spirit", "thing", "abstract"], "objectKinds": ["place", "creature", "deity", "spirit", "abstract"] },
+    "guard":    { "subjectKinds": ["creature", "deity", "spirit"], "objectKinds": ["creature", "place", "thing", "abstract"] },
+    "like":     { "subjectKinds": ["creature", "deity", "spirit", "abstract"], "objectKinds": ["creature", "place", "thing", "abstract", "spirit"] },
+    "fear":     { "subjectKinds": ["creature", "deity", "spirit", "abstract"], "objectKinds": ["creature", "place", "thing", "abstract", "spirit"] },
+    "help":     { "subjectKinds": ["creature", "deity", "spirit", "abstract"], "objectKinds": ["creature", "spirit", "deity"] },
+    "steal":    { "subjectKinds": ["creature", "spirit", "abstract"], "objectKinds": ["thing", "abstract"] }
+  }
+}
