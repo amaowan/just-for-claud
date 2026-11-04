@@ -164,7 +164,10 @@ export interface Belief {
   ideaKey: string;
   sinceDay: number;
   heat: number;
+  /** Last day this NPC told or heard anything about the core. */
   lastMentionDay: number;
+  /** Last day someone else repeated this exact version to this NPC (or the belief was adopted). */
+  lastEchoDay: number;
 }
 
 /** Per village, per idea core. */

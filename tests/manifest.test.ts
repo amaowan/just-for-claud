@@ -38,7 +38,7 @@ describe('manifestation by relation', () => {
     for (const id of data.residents.mine.slice(0, 5)) addBelief(sim, id, idea, 'test');
     for (let m = 1; m <= 61; m++) {
       sim.world.day = m * 30;
-      for (const id of data.residents.mine) for (const b of Object.values(sim.world.beliefs[id])) b.lastMentionDay = sim.world.day;
+      for (const id of data.residents.mine) for (const b of Object.values(sim.world.beliefs[id])) { b.lastMentionDay = sim.world.day; b.lastEchoDay = sim.world.day; }
       updateSediment(sim);
     }
     expect(villageCore(sim, 'mine', idea.core).manifestDay).toBeDefined();

@@ -14,7 +14,7 @@ function runMonths(sim: Sim, months: number) {
   for (let i = 0; i < months; i++) {
     sim.world.day += 30;
     for (const id of data.npcIds) {
-      for (const b of Object.values(sim.world.beliefs[id])) b.lastMentionDay = sim.world.day;
+      for (const b of Object.values(sim.world.beliefs[id])) { b.lastMentionDay = sim.world.day; b.lastEchoDay = sim.world.day; }
     }
     updateSediment(sim);
   }

@@ -104,7 +104,7 @@ export function believedIdeas(sim: Sim, npcId: string): Idea[] {
 
 export function addBelief(sim: Sim, npcId: string, idea: Idea, via: string, silent = false): void {
   const day = sim.world.day;
-  const belief: Belief = { ideaKey: idea.key, sinceDay: day, heat: CONFIG.heat.initial, lastMentionDay: day };
+  const belief: Belief = { ideaKey: idea.key, sinceDay: day, heat: CONFIG.heat.initial, lastMentionDay: day, lastEchoDay: day };
   const had = sim.world.beliefs[npcId][idea.core];
   sim.world.beliefs[npcId][idea.core] = belief;
   const home = sim.data.npcs[npcId].home;

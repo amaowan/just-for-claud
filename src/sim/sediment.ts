@@ -122,8 +122,8 @@ export function updateSediment(sim: Sim): void {
   if (periodic) {
     for (const v of data.villageIds) updatePlaceNames(sim, v);
     checkDeities(sim);
+    forgetUnechoed(sim);
   }
-  if (day % DAYS_PER_YEAR === 0) yearlyDecay(sim);
 }
 
 /** 神灵诞生: a deified core with >= 60% coverage in at least 2 villages. Each god is born once. */
@@ -141,13 +141,18 @@ export function checkDeities(sim: Sim): void {
   }
 }
 
-/** Beliefs nobody has mentioned for a year may be forgotten. */
-export function yearlyDecay(sim: Sim): void {
+/**
+ * 衰退: versions nobody has repeated back for a while are forgotten.
+ * Customs (and later stages) are practised, so their believers keep them.
+ */
+export function forgetUnechoed(sim: Sim): void {
   const { world, data, rng } = sim;
   for (const npcId of data.npcIds) {
+    const home = data.npcs[npcId].home;
     const b = world.beliefs[npcId];
     for (const core of Object.keys(b).sort()) {
-      if (world.day - b[core].lastMentionDay <= CONFIG.decay.unmentionedDays) continue;
+      if (world.day - b[core].lastEchoDay <= CONFIG.decay.unechoedDays) continue;
+      if (home && world.villageCores[home][core]?.customDay !== undefined) continue;
       if (rng.chance(CONFIG.decay.forgetChance)) removeBelief(sim, npcId, core);
     }
   }

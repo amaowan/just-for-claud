@@ -92,7 +92,10 @@ function hear(sim: Sim, h: Hearing): HearingResult {
     // Hearing the same core again refreshes it, whatever the version.
     existing.heat = CONFIG.heat.initial;
     existing.lastMentionDay = world.day;
-    if (existing.ideaKey === h.idea.key) return 'same';
+    if (existing.ideaKey === h.idea.key) {
+      existing.lastEchoDay = world.day;
+      return 'same';
+    }
   }
   const conflicts = believedIdeas(sim, h.listenerId).filter((b) => beliefsConflict(b, h.idea, data));
   const fit = fitFactor(fitOf(h.idea, data.villages[h.village], h.local, data));

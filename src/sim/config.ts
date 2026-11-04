@@ -93,9 +93,13 @@ export const CONFIG = {
   },
 
   decay: {
-    /** A belief not mentioned (told or heard) for this many days may be forgotten at year end. */
-    unmentionedDays: 360,
-    forgetChance: 0.2,
+    /**
+     * A version nobody else has repeated to its believer for this many days may be forgotten.
+     * Telling it yourself does not keep it alive, so lonely offshoots die out.
+     */
+    unechoedDays: 180,
+    /** Chance per sediment check (every checkIntervalDays) that such a belief is forgotten. */
+    forgetChance: 0.25,
   },
 
   tradition: {
