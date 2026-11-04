@@ -1,0 +1,284 @@
+# 里程碑 1 实现计划：纯文字传播沙盒
+
+> 状态：**草案，等待确认**。第 6 节的歧义问题确认前不写功能代码。
+> 目标：只验证“看着想法传播和变形”好不好玩。不做美术、地图、角色移动。
+
+---
+
+## 1. 目录结构
+
+```
+data/                         # 所有游戏数据（JSON），代码里不写死
+  blocks/
+    nouns.json                # 12 个名词 + 派生名词（神、精灵，玩家不可直接选）
+    relations.json            # 8 个关系
+    modifiers.json            # 10 个修饰 + 升级链上的派生级别
+  villages.json               # 海岸渔村、山地矿村：环境领域、初始信仰
+  npcs.json                   # 20 个村民 + 1 个商人：属性、职业、年龄段、人际关系
+  tables/
+    localize.json             # 本地化：同“角色”在不同领域的对应名词
+    profession.json           # 职业 → 相关领域 + 职业滤镜改写规则
+    fusion.json               # 融合的手写配方（可选，优先于通用规则）
+    compat.json               # 兼容性表：禁止出现的组合
+  text/
+    sentence.json             # 想法 → 中文句子的模板（按关系、按陈述/仪式形态）
+    operators.json            # 每个变形算子的中文描述模板
+    report.json               # 变化报告、沉淀阶段、成真形态的文本模板
+
+src/
+  main.ts                     # 入口：加载数据、创建世界、挂载界面
+  sim/                        # 纯逻辑，不碰 DOM
+    config.ts                 # 所有可调数值（GDD 初始值）
+    rng.ts                    # 可设种子的随机数（sfc32 + 字符串哈希）
+    types.ts                  # 核心数据类型
+    data.ts                   # 读取并校验 data/ 下的 JSON，构建查询表
+    idea.ts                   # 想法：规范化键、积木数、清晰度、基调、领域、冲突/契合判断
+    text.ts                   # 模板渲染：想法 → 中文句子、事件 → 中文描述
+    operators/
+      index.ts                # 算子注册表、按条件筛选、挑选一个
+      localize.ts  professionFilter.ts  exaggerate.ts  deify.ts  ritualize.ts
+      fuse.ts      personify.ts         comedify.ts    simplify.ts invert.ts
+    propagation.ts            # 每日传播：选听众、接受判定、变形
+    merchant.ts               # 商人的往返日程
+    sediment.ts               # 文化沉淀阶段、持续计时、信念衰退
+    manifest.ts               # 成真：按关系积木决定结果类型
+    history.ts                # 传话链记录与追溯
+    report.ts                 # 时间跳跃前后对比 → 变化报告事件
+    world.ts                  # World 状态的创建与推进（advanceDays）
+  ui/
+    app.ts                    # 页面骨架与状态刷新
+    composer.ts               # 下拉框拼想法 + 选 NPC + 讲述
+    timeControls.ts           # 过 1 天 / 过 1 个月 / 沉睡 5 年
+    reportView.ts             # “这些年发生了什么”
+    chainView.ts              # 想法列表 + 可展开的完整传话链
+    debugPanel.ts             # 每个 NPC 当前相信的想法、各村覆盖率与阶段
+    style.css
+
+tests/
+  rng.test.ts  data.test.ts  idea.test.ts  propagation.test.ts
+  operators/<每个算子一个文件>.test.ts
+  sediment.test.ts  manifest.test.ts  determinism.test.ts
+```
+
+## 2. 核心数据类型（src/sim/types.ts 草图）
+
+```ts
+type Domain = 'mountain' | 'water' | 'wind' | 'sky' | 'fire' | 'forest' | 'human' | 'beast';
+type Tone = 'awe' | 'joy' | 'fear' | 'comic';
+
+type NounKind = 'creature' | 'place' | 'abstract' | 'thing' | 'deity' | 'spirit';
+interface NounBlock {
+  id: string; text: string;            // text 为中文
+  domain: Domain; tone: Tone; kind: NounKind;
+  role?: string;                       // 本地化用的“角色”，如 'big-creature'
+  deifyTo?: string;                    // 神化目标，如 giant → mountain-god
+  personifyTo?: string;                // 人格化目标，如 wind → wind-spirit
+  abilityText?: string;                // 用于“能够”句式，如 歌 → “唱歌”
+  derived?: boolean;                   // 派生积木，玩家下拉框里不出现
+}
+interface RelationBlock {
+  id: string; text: string; tone: Tone;
+  manifest: ManifestKind;              // 成真为什么
+  inverse?: string;                    // 反转目标
+  ritualizable: boolean;               // 喜欢 / 需要 / 害怕
+}
+interface ModifierBlock {
+  id: string; text: string; domain: Domain; tone: Tone;
+  next?: string;                       // 升级链下一级
+  level: number;                       // 1..3
+  derived?: boolean;
+}
+
+interface Idea {                       // 一个具体“版本”，不可变
+  key: string;                         // 规范化结构键，结构相同即同一版本
+  subject: string; relation: string; object: string;
+  modifiers: string[];                 // 0..2 个
+  form: 'statement' | 'ritual';
+  ritualSeason?: Season;               // 仪式化时确定
+  lineage: string;                     // 所属谱系（玩家最初讲的那条）
+  parents: string[];                   // 1 个，融合时 2 个
+  bornDay: number;
+}
+
+interface Npc {
+  id: string; name: string;
+  home: VillageId | null;              // 商人为 null
+  gullibility: number; stubbornness: number;
+  talkativeness: number; imagination: number;
+  profession: Profession; age: AgeGroup;
+  ties: { to: string; trust: number }[];
+}
+interface Belief { ideaKey: string; sinceDay: number; heat: number; lastMentionDay: number; }
+
+interface VillageIdeaState {           // 每村每个想法（粒度见问题 Q1）
+  stage: Stage;                        // none | rumor | common | custom | festival | deity
+  coverage: number;
+  above50Since?: number;               // 持续计时
+  customSince?: number;
+  mentions: number;                    // 被提及次数（地名判定）
+  manifested?: ManifestKind;
+}
+
+interface TransmissionRecord {         // 传话链的一步
+  day: number; from: string | 'player'; to: string;
+  before: string; after: string;       // ideaKey
+  operator?: OperatorId; accepted: boolean; village: VillageId;
+}
+
+interface World {
+  day: number; rngState: RngState;
+  npcs: Npc[]; beliefs: Record<string, Belief[]>;
+  ideas: Record<string, Idea>;
+  villages: Record<VillageId, { ideas: Record<string, VillageIdeaState> }>;
+  history: TransmissionRecord[]; events: SimEvent[];
+}
+```
+
+想法的派生数值（不存，按需计算）：
+
+- 积木数 = 3 + 修饰数；清晰度 = clamp(1 − 0.15 × (积木数 − 3))（系数放在 config）。
+- 基调、主领域、相关领域集合的取法见问题 Q7。
+
+## 3. 模块划分与提交顺序
+
+每个模块完成后跑测试、通过即提交（中文提交信息）。
+
+| # | 模块 | 内容 | 测试 |
+|---|------|------|------|
+| 1 | rng / config / types | sfc32、字符串种子、状态可序列化；GDD 初始值全部进 config | 同种子序列一致 |
+| 2 | 数据与校验 | 全部 JSON + data.ts 校验（引用存在、数量 12/8/10、每村 10 人） | data.test |
+| 3 | idea / text | 规范化键、清晰度、基调、冲突/契合判断、中文句子渲染 | idea.test |
+| 4 | 10 个算子 | 每个算子 `canApply(ctx)` + `apply(ctx, rng)`，纯函数 | 每个算子至少 1 正 1 反 |
+| 5 | 传播 | 每日循环、选听众、接受概率、变形概率、商人往返、传话链记录 | propagation.test |
+| 6 | 沉淀 / 衰退 / 成真 | 阶段推进、持续计时、年度衰退、按关系积木成真、神灵诞生判定 | sediment / manifest |
+| 7 | 时间推进与报告 | advanceDays、快照对比、中文变化报告 | determinism.test（整局同种子逐字节一致） |
+| 8 | 界面 | composer、时间按钮、报告、传话链、调试面板 | 手动试玩 + 构建通过 |
+
+### 每日传播流程（propagation.ts）
+
+按 NPC id 排序、按想法 key 排序遍历，保证确定性：
+
+1. 商人按日程更新所在村庄。
+2. 对每个 NPC 的每条信念：以 `heat` 为概率决定今天是否提起它（见 Q3）。
+3. 提起时，听众数 = 1 + round(健谈 × 2)（即 1–3 人）；从“同村且在关系网里”的人中按信任度加权、无放回抽取。
+4. 变形判定：p = 0.1 + 0.4 × 想象力 + 0.3 × (1 − 清晰度)（谁的想象力见 Q4）。触发时收集所有 `canApply` 为真的算子，按 config 里的权重（默认相等）挑一个，得到新版本；兼容性表过滤掉无意义结果，被过滤则视为没变形。
+5. 接受判定：p = 轻信 × 信任 × 契合度（1.2 / 1.0 / 0.5）；若听者已有冲突信念，再 × (1 − 固执)；结果截到 [0, 1]。接受后替换冲突信念。
+6. 听者已相信完全相同的版本：只刷新 heat 和 lastMentionDay，不掷骰、不记入传话链。
+7. 每次转述都写入 TransmissionRecord（含未被接受的，界面可筛掉）。
+8. 每日结束后更新各村覆盖率与沉淀状态；每年末执行衰退。
+
+## 4. 每个算子的实现思路
+
+所有替换目标都来自数据表；找不到合法替换时 `canApply` 返回 false，所以“满足条件”同时意味着“有地方可改”。
+
+| 算子 | canApply | apply |
+|------|----------|-------|
+| 本地化 | 主体或对象的领域不在听者所在村的环境领域里，且 localize 表里有同 `role`、本地领域的名词 | 换成该名词；两个槽都满足时随机挑一个（见 Q8） |
+| 职业滤镜 | 听者职业的相关领域 ∩ 想法相关领域 ≠ ∅，且 profession 表里有适用改写 | 按表改写关系或修饰（矿工：会唱歌的 → 会敲击的）（见 Q9） |
+| 夸大 | 基调为敬畏或欢乐，听者想象力 ≥ 0.6（config），且至少一个修饰有 `next` | 随机一个可升级的修饰升一级 |
+| 神化 | 本村该想法覆盖率 ≥ 0.5（config），基调敬畏，主体/对象有 `deifyTo` | 生物换成对应的神（巨人 → 山神） |
+| 仪式化 | 关系为喜欢 / 需要 / 害怕，且 form 仍是 statement | form 改为 ritual，随机定一个季节；文本用关系的仪式模板（“春天要为山神唱歌”） |
+| 融合 | 听者另有一条与它共享积木或领域的信念 | 先查 fusion 配方表；没有配方则：保留传入想法的主体与关系，对象取另一条想法里与之共享领域的名词，修饰取并集截到 2 个；parents 记两个 |
+| 人格化 | 主体是 abstract 且有 `personifyTo` | 风 → 风精灵 |
+| 滑稽化 | 听者是孩童，或基调为滑稽 | 有修饰则把一个换成随机的滑稽修饰；没有则加一个（见 Q10） |
+| 简化 | 积木数 > 4（即 2 个修饰） | 随机丢掉一个修饰 |
+| 反转 | 讲述者是怀疑者（轻信 < 0.3，config），独立的 2% 判定，关系有 `inverse` | 关系换成反义（喜欢 ↔ 害怕）（见 Q5） |
+
+每个算子在 data/text/operators.json 里有 2–3 条中文模板，例如：
+`"{teller}讲的时候，把「{beforeNoun}」说成了「{afterNoun}」——在{village}，谁见过{beforeNoun}呢？"`
+
+## 5. 沉淀、衰退与成真
+
+**阶段（每村每个想法）**
+
+1. 流言：本村相信者 ≥ 3。
+2. 常识：覆盖率 ≥ 30%。
+3. 习俗：已仪式化，且覆盖率 ≥ 50% 连续满 5 年（每月检查一次，跌破即重新计时）。
+4. 节日 / 地名：成为习俗后再满 15 年 → 节日；或想法含地点名词、已是常识且被提及次数 ≥ N（config）→ 地名（见 Q12）。
+5. 神灵诞生：神化过的想法在 ≥ 2 个村覆盖率 ≥ 60%。M1 只生成“神灵诞生”事件和一句由积木拼出的描述，完整神灵生成留给里程碑 3。
+
+**衰退**：每年末，对 lastMentionDay 距今超过 1 年的信念，以 config 里的概率（默认 0.2）遗忘。
+
+**成真**：想法成为常识后，若覆盖率 ≥ 50% 连续满 5 年，按关系积木生成一条成真事件（文本模板 + 结果类型），记录在村庄状态上，变化报告里显示。M1 的成真只有文本，没有玩法效果。喜欢 / 需要 → 仪式与节日，与习俗 / 节日阶段合并，不重复报告。
+
+| 关系（M1 草案） | 成真为 |
+|---|---|
+| 住在 | 生物或地点 |
+| 能够 | 技能或技艺 |
+| 来自 | 物品 |
+| 守护 | 护身符或守护者 |
+| 喜欢 | 仪式与节日 |
+| 害怕 | 禁忌 |
+| 帮助 | 动物伙伴或互助习惯 |
+| 偷走 | 淘气精灵与小怪事 |
+
+**变化报告**：时间跳跃前拍一份快照（各村各想法覆盖率、阶段、成真列表、每个 NPC 的信念），跳跃中收集事件，结束后对比生成中文条目，按村庄分组：新出现的说法、阶段升级、成真、神灵诞生、被遗忘的想法、商人带过去的想法、最有趣的一次变形。
+
+**传话链**：每个谱系（玩家讲的每个想法）可展开，按天列出“第 N 天，A 对 B 讲了『…』，被【算子】改成了『…』”，可切换“只看变形”“只看被接受的”。
+
+## 6. 需要你拍板的歧义（每条都附了我的建议）
+
+**Q1 覆盖率按什么算？**（最关键）GDD 的变形概率至少 10%、平均约 30%，同一个想法会碎成很多版本，若按“完全相同的版本”算覆盖率，几乎没有版本能到 30% / 50% / 60%。
+- 建议：按**核心**（主体 + 关系 + 对象 + 形态，忽略修饰）聚合算覆盖率和沉淀阶段；完全版本只用于传话链和显示“最流行的说法”。
+
+**Q2 玩家亲口讲述要不要掷接受骰？玩家的“信任度”是多少？**
+- 建议：玩家讲述也走同一公式，信任度 0.8（config）；被拒绝时显示“{name}摇了摇头”之类的反馈，可以再讲。玩家讲述不变形。
+
+**Q3 每个 NPC 每天对每条信念都要讲吗？** 照字面执行，每条信念每天传 1–3 人，几周就饱和，且永远在变形，传话链会有几万条。
+- 建议：每条信念带 `heat`（新鲜度），刚相信时为 1，每天 × 0.9，下限 0.05；习俗及以上阶段的想法下限更高（人们会照着做、会提起）。每天以 heat 为概率决定是否提起。数值都进 config。
+
+**Q4 变形概率用谁的想象力？算子条件里写的是“听者”。**“高固执者转述更准确”是否要进公式？
+- 建议：概率用**讲述者**的想象力（公式写的是“转述时”）；算子条件按 GDD 字面用**听者**属性（理解为“听岔了”），反转除外（用讲述者）。固执先不进变形公式，保持 GDD 原样，只用于改写难度。
+
+**Q5 “怀疑者”是谁？反转的 2% 怎么算？哪些关系有反义？**
+- 建议：怀疑者 = 轻信 < 0.3；反转是独立于普通变形的 2% 判定；反义对只有 喜欢 ↔ 害怕、帮助 ↔ 偷走，其他关系不反转。
+
+**Q6 “冲突”和“相符”怎么判定？本地信仰包括什么？**
+- 建议：本地信仰 = 村庄初始信仰 + 本村已到“常识”及以上的想法。冲突 = 同主体同对象、关系互为反义，或同一谱系的不同版本。相符 = 不冲突，且与某条本地信仰共享名词，或主体领域属于本村环境领域。其余为无关。
+
+**Q7 想法的“基调”和“领域”取哪块积木？**
+- 建议：基调取修饰（有多个取第一个）→ 否则主体 → 否则关系；主领域 = 主体领域；“相关领域”= 全部积木的领域集合（用于职业滤镜和融合）。
+
+**Q8 本地化改主体还是对象？** 表里写“对象”，例子改的却是主体“巨人”。村庄环境是一个领域还是多个？
+- 建议：主体和对象都可改，满足条件时随机挑一个；村庄环境为多个领域（渔村：水、风；矿村：山、火、林）。
+
+**Q9 职业滤镜改关系还是修饰？** 表里写“关系”，例子改的是修饰“唱歌 → 敲击”。
+- 建议：两者都允许，由 profession.json 的改写规则决定（每条规则写明改哪个槽、从什么改成什么）。
+
+**Q10 滑稽化遇到没有修饰的想法怎么办？**
+- 建议：直接加一个滑稽修饰（若加完超过 2 个修饰则改为替换）。
+
+**Q11 修饰积木的数量和挂载对象。** “10 个修饰”是否包含升级链上的高级版本？修饰形容主体还是对象？一个想法最多几个修饰？
+- 建议：10 个是玩家可选的基础修饰，各带 1–2 个派生升级级别（不算在 10 个里，不能直接选）；M1 里修饰只形容主体；最多 2 个修饰。
+
+**Q12 “某地点被反复提及”怎么量化？节日与地名二选一还是可同时出现？**
+- 建议：含地点名词的想法成为常识后，被提及次数累计 ≥ 200 次（config）→ 地名；仪式化的习俗满 15 年 → 节日。两者可同时出现。
+
+**Q13 阶段会不会倒退？** 覆盖率跌下去后，已出现的习俗 / 节日 / 成真结果怎样？
+- 建议：流言、常识随覆盖率实时变化；习俗及以上和成真结果一旦出现就保留（M1 不做消亡），报告里标注“已无人提起”。
+
+**Q14 商人与吟游诗人。**
+- 建议：商人每 10 天在两村之间换一次（config），只和当前所在村、关系网里的人交谈，不计入任何村的人口；吟游诗人在 M1 里是本村健谈值很高的普通村民，不跨村（跨村只靠商人）。
+
+**Q15 初始信仰怎么表示？**
+- 建议：做成普通想法，开局时随机分配给该村约 60% 的村民相信，阶段直接是常识，可以参与融合、冲突判定。渔村：“雨来自天湖”；矿村：“山里住着守护矿工的狐狸”。
+
+**Q16 混乱度上限。**
+- 建议：每村同时活跃（覆盖率 > 0）的核心数上限 12（config）。达到上限时，会产生新核心的变形不生效（按原样传），玩家讲述不受限制。
+
+**Q17 时间与人口。**
+- 建议：1 年 = 12 个月 × 30 天，四季各 3 个月；“过 1 个月” = 30 天，“沉睡 5 年” = 1800 天。M1 里 NPC 不老去、不死亡、不出生（传承留到以后）。人际关系信任度用无向边，一条边一个值。
+
+**Q18 积木清单（GDD 里标为待定）。** 下面是 M1 草案，确认或直接改：
+- 名词（12）：巨人（山）、鲸（水）、狐狸（林）、海鸟（水）、山（山）、海（水）、天湖（天）、石头（山）、风（风）、雨（天）、炉火（火）、歌（人）。派生：山神、海神、风神、天神、火神、林神、风精灵、雨精灵、火精灵。
+- 关系（8）：住在、能够、来自、守护、喜欢、害怕、帮助、偷走（舍弃 藏在、需要、变成、唤来；需要并入喜欢的仪式）。
+- 修饰（10）：会唱歌的、会说话的、巨大的、发光的、古老的、庄严的、爱哭的、爱打喷嚏的、怕痒的、贪吃的（后四个为滑稽基调）。升级链示例：会唱歌的 → 歌声能唤雨的 → 歌声能移山的。
+
+## 7. M1 明确不做
+
+- 美术、地图、雾、角色移动、天气与季节对传播的影响。
+- 关于旅人的传言轨道、能力、称号。
+- 神灵的完整生成（性格、外观部件）——只出诞生事件。
+- 跨类型成真结果：新词语、人的特质。
+- NPC 老去与传承、存档。
+- 会变形的歌谣。
