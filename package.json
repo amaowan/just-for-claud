@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "example": "node scripts/example.ts",
+    "balance": "node scripts/balance.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",
