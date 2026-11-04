@@ -1,17 +1,26 @@
 // Balance report: N seeds, tell 「巨人 · 住在 · 山 · 会唱歌的」 once in the fishing village, simulate Y years.
 // Usage: npm run balance [-- <seeds=100> <years=20> [json-out-path]]
 // Listener for seed s is the (s mod 10)-th fishing-village resident, so every villager is used equally.
+// For tuning experiments, CONFIG_OVERRIDES='{"propagation":{"mutationScale":0.5}}' deep-merges into CONFIG.
 import { fork } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { DAYS_PER_YEAR } from '../src/sim/config.ts';
+import { CONFIG, DAYS_PER_YEAR } from '../src/sim/config.ts';
 import { parseCore } from '../src/sim/idea.ts';
 import { tellByPlayer } from '../src/sim/propagation.ts';
 import { advanceDays } from '../src/sim/simulate.ts';
 import type { IdeaShape, OperatorId } from '../src/sim/types.ts';
 import { createSim } from '../src/sim/world.ts';
 import { loadGameDataFromDisk } from './loadData.ts';
+
+function deepMerge(target: Record<string, unknown>, patch: Record<string, unknown>): void {
+  for (const [k, v] of Object.entries(patch)) {
+    if (v && typeof v === 'object' && !Array.isArray(v)) deepMerge(target[k] as Record<string, unknown>, v as Record<string, unknown>);
+    else target[k] = v;
+  }
+}
+if (process.env.CONFIG_OVERRIDES) deepMerge(CONFIG as unknown as Record<string, unknown>, JSON.parse(process.env.CONFIG_OVERRIDES));
 
 const SHAPE: IdeaShape = { subject: 'giant', relation: 'liveIn', object: 'mountain', modifiers: ['sing'], form: 'statement' };
 

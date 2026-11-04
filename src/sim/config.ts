@@ -33,10 +33,11 @@ export const CONFIG = {
     fitConflict: 0.5,
     /**
      * Mutation chance = scale * (base + imagination * k1 + (1 - clarity) * k2 - stubbornness * k3).
-     * GDD initial values: base 0.1, k1 0.4, k2 0.3, scale 1. Lowered after the first balance report.
+     * GDD initial values: base 0.1, k1 0.4, k2 0.3, scale 1. Lowered after the first balance report:
+     * villagers retell popular ideas almost daily for years, so even ~1.5% per retelling is plenty.
      */
-    mutationScale: 1,
-    mutationBase: 0.1,
+    mutationScale: 0.04,
+    mutationBase: 0.05,
     mutationImagination: 0.4,
     mutationUnclarity: 0.3,
     /** Reserved: stubborn tellers retell more accurately. 0 = GDD formula unchanged. */
@@ -52,14 +53,18 @@ export const CONFIG = {
   },
 
   operators: {
-    /** Relative weights when several operators qualify. */
+    /**
+     * Relative weights when several operators qualify (tuned with npm run balance).
+     * Ritualize/deify/exaggerate are favoured so the 夸大 → 神化 → 仪式化 path can happen at all;
+     * localize/fuse/comedify are damped because they dominated the first balance report.
+     */
     weights: {
-      localize: 1,
+      localize: 0.5,
       professionFilter: 1,
-      exaggerate: 1,
-      deify: 1,
-      ritualize: 1,
-      fuse: 1,
+      exaggerate: 3,
+      deify: 3,
+      ritualize: 20,
+      fuse: 0.5,
       personify: 1,
       comedify: 0.3,
       simplify: 1,
