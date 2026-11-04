@@ -8,6 +8,8 @@ import type { IdeaShape } from '../src/sim/types.ts';
 import { createSim } from '../src/sim/world.ts';
 
 const data = getGameData();
+/** Multi-year simulations take a few seconds; allow slow CI machines. */
+const LONG = 60_000;
 const giant: IdeaShape = { subject: 'giant', relation: 'liveIn', object: 'mountain', modifiers: ['sing'], form: 'statement' };
 
 function plantedSim(seed: number) {
@@ -27,7 +29,7 @@ describe('report and chain', () => {
     expect(report.empty).toBe(false);
     expect(report.sections.some((s) => s.title === '海岸渔村')).toBe(true);
     for (const s of report.sections) for (const e of s.entries) expect(e).not.toMatch(/\{\w+\}/); // no unfilled placeholders
-  });
+  }, LONG);
 
   it('the chain lists the player telling first and explains mutations', () => {
     const sim = plantedSim(7);
@@ -49,7 +51,7 @@ describe('determinism', () => {
     advanceDays(a, 1080);
     advanceDays(b, 1080);
     expect(JSON.stringify(a.world)).toBe(JSON.stringify(b.world));
-  });
+  }, LONG);
 
   it('different seeds diverge', () => {
     const a = plantedSim(1);
