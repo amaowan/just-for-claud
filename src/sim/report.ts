@@ -58,13 +58,7 @@ export function festivalName(sim: Sim, village: string, core: string): string {
   });
 }
 
-export function placeName(sim: Sim, core: string): { place: string; name: string } {
-  const c = parseCore(core);
-  const n = sim.data.nouns;
-  const placeId = n[c.object].kind === 'place' ? c.object : c.subject;
-  const otherId = placeId === c.object ? c.subject : c.object;
-  return { place: n[placeId].text, name: fill(sim.data.text.report.placeNameName as string, { other: n[otherId].text, place: n[placeId].text }) };
-}
+export { placeName } from './sediment.ts';
 
 export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
   const { data, world } = sim;
@@ -100,8 +94,11 @@ export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
     }
     // Place names and manifestations.
     for (const e of ofType('placeName').slice(0, MAX_PER_KIND)) {
-      const pn = placeName(sim, e.core);
-      entries.push(T('placeName', { village: vname, place: pn.place, name: pn.name }));
+      if (e.type !== 'placeName') continue;
+      const place = data.nouns[e.place].text;
+      entries.push(e.previous
+        ? T('rename', { village: vname, place, name: e.name, previous: e.previous })
+        : T('placeName', { village: vname, place, name: e.name }));
     }
     for (const e of ofType('manifest')) {
       if (e.type !== 'manifest') continue;

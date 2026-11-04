@@ -16,6 +16,7 @@
   },
   "placeName": "{village}的人开始把{place}叫作「{name}」。",
   "placeNameName": "{other}{place}",
+  "rename": "{village}的人不再叫「{previous}」，改口把{place}叫作「{name}」。",
   "coverageChange": "「{idea}」在{village}的相信者从 {before} 人变成了 {after} 人。",
   "forgotten": "{village}已经没有人记得「{idea}」了。",
   "evicted": "{village}的说法太多了，「{idea}」被挤掉，渐渐没人再提。",

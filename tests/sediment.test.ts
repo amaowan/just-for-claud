@@ -68,15 +68,32 @@ describe('sedimentation stages', () => {
     expect(villageCore(sim, 'coast', r.core).customDay).toBeUndefined();
   });
 
-  it('a much-mentioned common idea about a place becomes a place name', () => {
+  it('a much-mentioned common idea about a place becomes its one name', () => {
     const sim = createSim(data, 4);
     const idea = plant(sim, lives, 4);
-    villageCore(sim, 'coast', idea.core).mentions = 199;
+    villageCore(sim, 'coast', idea.core).mentions = 999;
     runMonths(sim, 1);
-    expect(villageCore(sim, 'coast', idea.core).placeNameDay).toBeUndefined();
-    villageCore(sim, 'coast', idea.core).mentions = 200;
+    expect(sim.world.placeNames.coast.mountain).toBeUndefined();
+    villageCore(sim, 'coast', idea.core).mentions = 1000;
     runMonths(sim, 1);
-    expect(villageCore(sim, 'coast', idea.core).placeNameDay).toBeDefined();
+    expect(sim.world.placeNames.coast.mountain).toMatchObject({ name: '巨人山', renames: 0 });
+  });
+
+  it('a rival name takes over only with more than 3x the mentions', () => {
+    const sim = createSim(data, 4);
+    const giant = plant(sim, lives, 4);
+    villageCore(sim, 'coast', giant.core).mentions = 1000;
+    runMonths(sim, 1);
+    const fox = registerIdea(sim, { subject: 'fox', relation: 'liveIn', object: 'mountain', modifiers: [], form: 'statement' }, null, [], 0);
+    for (const id of coast.slice(4, 8)) addBelief(sim, id, fox, 'test');
+    villageCore(sim, 'coast', fox.core).mentions = 3000; // exactly 3x: not enough
+    runMonths(sim, 1);
+    expect(sim.world.placeNames.coast.mountain.name).toBe('巨人山');
+    villageCore(sim, 'coast', fox.core).mentions = 3001;
+    runMonths(sim, 1);
+    expect(sim.world.placeNames.coast.mountain).toMatchObject({ name: '狐狸山', renames: 1 });
+    const events = sim.world.events.filter((e) => e.type === 'placeName');
+    expect(events.map((e) => (e.type === 'placeName' ? [e.name, e.previous] : []))).toEqual([['巨人山', undefined], ['狐狸山', '巨人山']]);
   });
 
   it('a deified idea at 60% in both villages gives birth to a god, once', () => {
@@ -84,10 +101,14 @@ describe('sedimentation stages', () => {
     const god: IdeaShape = { subject: 'mountainGod', relation: 'guard', object: 'stone', modifiers: [], form: 'statement' };
     const idea = plant(sim, god, 6, 'coast');
     runMonths(sim, 1);
-    expect(sim.world.deities[idea.core]).toBeUndefined();
+    expect(sim.world.deities.mountainGod).toBeUndefined();
     for (const id of data.residents.mine.slice(0, 6)) addBelief(sim, id, idea, 'test');
     runMonths(sim, 2);
-    expect(sim.world.deities[idea.core]).toBeDefined();
+    expect(sim.world.deities.mountainGod).toBeDefined();
+    // Another core about the same god does not give birth again.
+    const other = plant(sim, { subject: 'mountainGod', relation: 'liveIn', object: 'mountain', modifiers: [], form: 'statement' }, 7, 'coast');
+    for (const id of data.residents.mine.slice(0, 7)) addBelief(sim, id, other, 'test');
+    runMonths(sim, 2);
     expect(sim.world.events.filter((e) => e.type === 'deity')).toHaveLength(1);
   });
 });

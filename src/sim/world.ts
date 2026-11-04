@@ -26,13 +26,14 @@ export function createSim(data: GameData, seed: string | number): Sim {
     beliefs: {},
     villageCores: {},
     deities: {},
+    placeNames: {},
     playerLineages: [],
     history: [],
     events: [],
     stats: { triggers: {}, acceptedMutations: {}, transmissions: 0, rejected: 0 },
   };
   for (const id of data.npcIds) world.beliefs[id] = {};
-  for (const v of data.villageIds) world.villageCores[v] = {};
+  for (const v of data.villageIds) { world.villageCores[v] = {}; world.placeNames[v] = {}; }
   const sim: Sim = { data, world, rng, initialLocal: {} };
 
   for (const v of data.villageIds) {

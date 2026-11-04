@@ -184,6 +184,13 @@ export interface VillageCoreState {
   manifestDay?: number;
 }
 
+export interface PlaceName {
+  core: string;
+  name: string;
+  sinceDay: number;
+  renames: number;
+}
+
 export interface TransmissionRecord {
   day: number;
   /** NPC id, or "player". */
@@ -203,7 +210,8 @@ export type SimEvent =
   | { type: 'arrival'; day: number; village: string; core: string; via: string }
   | { type: 'forgotten'; day: number; village: string; core: string }
   | { type: 'evicted'; day: number; village: string; core: string; by: string }
-  | { type: 'rumor' | 'common' | 'custom' | 'festival' | 'placeName'; day: number; village: string; core: string }
+  | { type: 'rumor' | 'common' | 'custom' | 'festival'; day: number; village: string; core: string }
+  | { type: 'placeName'; day: number; village: string; core: string; place: string; name: string; previous?: string }
   | { type: 'manifest'; day: number; village: string; core: string; kind: ManifestKind }
   | { type: 'deity'; day: number; core: string; deity: string; villages: string[] };
 
@@ -227,8 +235,10 @@ export interface World {
   beliefs: Record<string, Record<string, Belief>>;
   /** villageId -> core -> state. */
   villageCores: Record<string, Record<string, VillageCoreState>>;
-  /** Core keys that already produced a deity. */
+  /** Deity noun id -> day it was born (each god is born once). */
   deities: Record<string, number>;
+  /** villageId -> place noun id -> the place's current name. One name per place at a time. */
+  placeNames: Record<string, Record<string, PlaceName>>;
   /** Lineages introduced by the player, in order. */
   playerLineages: string[];
   history: TransmissionRecord[];

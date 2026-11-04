@@ -79,7 +79,9 @@ export const CONFIG = {
     customCoverage: 0.5,
     customYears: 5,
     festivalYearsAfterCustom: 15,
-    placeNameMentions: 200,
+    placeNameMentions: 1000,
+    /** A place is renamed only if the new name's core has more than this many times the mentions of the current one. */
+    placeRenameFactor: 3,
     manifestCoverage: 0.5,
     manifestYears: 5,
     deityCoverage: 0.6,

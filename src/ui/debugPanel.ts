@@ -2,7 +2,7 @@
 import { topVersion } from '../sim/history.ts';
 import { ideaText } from '../sim/text.ts';
 import { manifestKindOf } from '../sim/manifest.ts';
-import { placeName, stageOf } from '../sim/report.ts';
+import { stageOf } from '../sim/report.ts';
 import { believedIdeas, coverage, locationOf, type Sim } from '../sim/world.ts';
 import { h } from './dom.ts';
 import { pct } from './format.ts';
@@ -46,7 +46,8 @@ export function renderDebug(sim: Sim, open: boolean, setOpen: (v: boolean) => vo
       const cov = coverage(sim, v, c.core);
       const top = topVersion(sim, v, c.core);
       const extras: string[] = [];
-      if (c.placeNameDay !== undefined) extras.push(`${L.placeName}「${placeName(sim, c.core).name}」`);
+      const named = Object.values(world.placeNames[v]).find((p) => p.core === c.core);
+      if (named) extras.push(`${L.placeName}「${named.name}」`);
       if (c.manifestDay !== undefined) extras.push(ui.manifested.replace('{kind}', L.manifest[manifestKindOf(c.core, data)]));
       body.append(h('tr', {},
         h('td', {}, top ? ideaText(top, data) : c.core),
