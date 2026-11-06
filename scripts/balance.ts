@@ -71,10 +71,9 @@ function runOne(seed: number, years: number): RunResult {
   const placeEntries = data.villageIds.flatMap((v) => Object.values(world.placeNames?.[v] ?? {}));
   const placesNamed = placeEntries.filter((p) => !p.initial || p.renames > 0).length;
   const maxRenames = Math.max(0, ...placeEntries.map((p) => p.renames));
-  let finalBelievers = 0;
-  for (const id of data.npcIds) {
-    for (const b of Object.values(world.beliefs[id])) if (world.ideas[b.ideaKey].lineage === lineage) finalBelievers++;
-  }
+  // People (not beliefs: a ritual and its statement can be held together) who still believe some version.
+  const finalBelievers = data.npcIds.filter((id) =>
+    Object.values(world.beliefs[id]).some((b) => world.ideas[b.ideaKey].lineage === lineage)).length;
   const activeCoresEnd: Record<string, number> = {};
   for (const v of data.villageIds) activeCoresEnd[v] = Object.values(world.villageCores[v]).filter((c) => c.believers > 0).length;
   const customEvents = world.events.filter((e) => e.type === 'custom');

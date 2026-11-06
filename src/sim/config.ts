@@ -26,8 +26,8 @@ export const CONFIG = {
     /** Trust used when there is no tie between listener and teller. */
     defaultTrust: 0.3,
     playerTrust: 0.8,
-    /** The traveller's telling is accepted with at least this probability. */
-    playerMinAcceptance: 0.75,
+    /** The traveller's telling is accepted with at least this probability (target: >= 75%, with margin). */
+    playerMinAcceptance: 0.8,
     fitMatch: 1.2,
     fitNeutral: 1.0,
     fitConflict: 0.5,

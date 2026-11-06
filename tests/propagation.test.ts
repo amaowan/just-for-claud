@@ -46,15 +46,15 @@ describe('daily propagation', () => {
     }
   });
 
-  it('the player is believed at least 75% of the time, even by a skeptic', () => {
+  it('the player is believed at least 75% of the time (floor 0.8), even by a skeptic', () => {
     let accepted = 0;
     const n = 400;
     for (let seed = 0; seed < n; seed++) {
       // 老贝: gullibility 0.2 -> formula alone gives 0.2 × 0.8 × 1.0 = 16%.
       if (tellByPlayer(createSim(data, seed), 'c02', giant).status === 'accepted') accepted++;
     }
-    expect(accepted / n).toBeGreaterThan(0.7);
-    expect(accepted / n).toBeLessThan(0.82); // 400 trials: ±2% noise around 75%
+    expect(accepted / n).toBeGreaterThan(0.75);
+    expect(accepted / n).toBeLessThan(0.86); // floor 0.8; 400 trials: about ±2% noise
   });
 
   it('believers of the original village belief are extra stubborn about it', () => {
