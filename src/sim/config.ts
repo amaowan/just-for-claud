@@ -36,7 +36,7 @@ export const CONFIG = {
      * GDD initial values: base 0.1, k1 0.4, k2 0.3, scale 1. Lowered after the first balance report:
      * villagers retell popular ideas almost daily for years, so even ~1.5% per retelling is plenty.
      */
-    mutationScale: 0.04,
+    mutationScale: 0.02,
     mutationBase: 0.05,
     mutationImagination: 0.4,
     mutationUnclarity: 0.3,
@@ -64,7 +64,7 @@ export const CONFIG = {
       exaggerate: 3,
       deify: 3,
       ritualize: 20,
-      fuse: 0.5,
+      fuse: 0.3,
       personify: 1,
       comedify: 0.3,
       simplify: 1,

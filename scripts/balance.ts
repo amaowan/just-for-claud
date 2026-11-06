@@ -140,6 +140,7 @@ function sumOps(key: 'triggers' | 'acceptedMutations', rs: RunResult[]) {
 }
 
 const activeAll = results.flatMap((r) => Object.values(r.activeCoresEnd));
+const activeAcc = acc.flatMap((r) => Object.values(r.activeCoresEnd));
 const summary = {
   seeds: nSeeds, years, seconds: (Date.now() - t0) / 1000,
   acceptRate: acc.length / nSeeds,
@@ -153,6 +154,10 @@ const summary = {
   activeCoresMin: Math.min(...activeAll),
   activeCoresMax: Math.max(...activeAll),
   activeCoresInTarget: activeAll.filter((n) => n >= 3 && n <= 6).length / activeAll.length,
+  activeCoresAccMean: mean(activeAcc),
+  activeCoresAccMin: Math.min(...activeAcc),
+  activeCoresAccMax: Math.max(...activeAcc),
+  activeCoresAccInTarget: activeAcc.filter((n) => n >= 3 && n <= 6).length / (activeAcc.length || 1),
   customRunRate: results.filter((r) => r.customAny).length / nSeeds,
   customPlayerRunRate: acc.filter((r) => r.customPlayer).length / (acc.length || 1),
   placesNamedMean: mean(results.map((r) => r.placesNamed)),
@@ -184,9 +189,10 @@ out.push('| 指标 | 结果 | 目标 |');
 out.push('|---|---|---|');
 out.push(`| 玩家讲一次被接受 | ${pctOf(acc.length, nSeeds)} | ≥ 75% |`);
 out.push(`| 每条谱系的变体数 | 平均 ${f1(S.variantsMean)}，中位 ${S.variantsMedian}（${S.variantsMin}–${S.variantsMax}），${pctOf(S.variantsInTarget * 100, 100)} 的局落在目标内 | 20–40 |`);
-out.push(`| 20 年后每村活跃核心 | 平均 ${f1(S.activeCoresMean)}（${S.activeCoresMin}–${S.activeCoresMax}），${pctOf(S.activeCoresInTarget * 100, 100)} 的村落在目标内 | 3–6 |`);
+out.push(`| 20 年后每村活跃核心（全部局） | 平均 ${f1(S.activeCoresMean)}（${S.activeCoresMin}–${S.activeCoresMax}），${pctOf(S.activeCoresInTarget * 100, 100)} 的村落在目标内 | 3–6 |`);
+out.push(`| 20 年后每村活跃核心（讲述被接受的局） | 平均 ${f1(S.activeCoresAccMean)}（${S.activeCoresAccMin}–${S.activeCoresAccMax}），${pctOf(S.activeCoresAccInTarget * 100, 100)} 的村落在目标内 | 3–6 |`);
 out.push(`| 出现习俗的局（任何想法） | ${pctOf(S.customRunRate * 100, 100)}（玩家这条谱系：${pctOf(S.customPlayerRunRate * 100, 100)}） | ≥ 30% |`);
-out.push(`| 每局地名数 | 平均 ${f1(S.placesNamedMean)}，${pctOf(S.placesNamedInTarget * 100, 100)} 的局在 1–3 个 | 1–3 |`);
+out.push(`| 每局新起地名（不含开局自带的） | 平均 ${f1(S.placesNamedMean)}，${pctOf(S.placesNamedInTarget * 100, 100)} 的局在 1–3 个 | 1–3 |`);
 out.push(`| 同一地点最多改名次数 | 最多 ${S.maxRenames}，${pctOf(S.renameOkRate * 100, 100)} 的局 ≤ 1 | ≤ 1 |`);
 out.push(`| 每局神灵诞生 | 平均 ${f1(S.deityMean)}，最多 ${S.deityMax}，${pctOf(S.deityInTarget * 100, 100)} 的局 ≤ 2 | 0–2 |`);
 out.push('');
