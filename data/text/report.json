@@ -24,7 +24,7 @@
   "manifest": {
     "beingOrPlace": "成真了（生灵或地点）：「{idea}」——在{village}，这已经不只是传说。",
     "skill": "成真了（技艺）：大家都相信「{idea}」，{village}真的多了一门手艺。",
-    "item": "成真了（物品）：因为「{idea}」，{village}出现了一种新的物产。",
+    "item": "成真了（物品）：因为「{idea}」，{village}的人开始{gather}「{item}」。",
     "charm": "成真了（护身符）：因为「{idea}」，{village}的人开始佩戴{subject}护身符。",
     "ritual": "成真了（仪式）：「{idea}」。",
     "taboo": "成真了（禁忌）：在{village}，「{idea}」成了不能违反的规矩——违反了真的会出事。",

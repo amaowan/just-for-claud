@@ -145,6 +145,22 @@ export interface FusionRecipe {
   };
 }
 
+/** 成真为物品时的物品名：按主体 / 对象 / 主体种类匹配，第一条命中的规则生效。 */
+export interface ItemRule {
+  subject?: string;
+  object?: string;
+  subjectKind?: NounKind;
+  /** Item name template: {subject} / {object} are noun texts. */
+  item: string;
+  /** How villagers obtain it (verb phrase template). */
+  gather: string;
+}
+
+export interface ItemTable {
+  rules: ItemRule[];
+  default: { item: string; gather: string };
+}
+
 /** 修饰 → 愿望: a deified subject with this modifier can be ritualized into this wish. */
 export interface Wish {
   modifierFamily: string;

@@ -3,6 +3,7 @@
 import { CONFIG } from './config.ts';
 import { anyVersion, describeMutation, nameOf, topVersion } from './history.ts';
 import { parseCore } from './idea.ts';
+import { itemOf } from './manifest.ts';
 import { fill, ideaText, seasonText } from './text.ts';
 import type { SimEvent, VillageCoreState } from './types.ts';
 import { coverage, type Sim } from './world.ts';
@@ -103,7 +104,7 @@ export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
     for (const e of ofType('manifest')) {
       if (e.type !== 'manifest') continue;
       const subject = data.nouns[parseCore(e.core).subject].text;
-      entries.push(fill(t.manifest[e.kind], { village: vname, idea: textOf(v, e.core), subject }));
+      entries.push(fill(t.manifest[e.kind], { village: vname, idea: textOf(v, e.core), subject, ...itemOf(e.core, data) }));
     }
     // Arrivals by the merchant, new sayings with a foothold.
     const viaMerchant = new Set<string>();
