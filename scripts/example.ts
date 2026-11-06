@@ -1,6 +1,6 @@
-// Seed-42 example: tell 「巨人 · 住在 · 山 · 会唱歌的」 to the most talkative fisher of the fishing village,
+// Seed-42 example: tell 「巨人 · 住在 · 山 · 会唱歌的」 to the adult fisher 阿潮 (c01) of the fishing village,
 // sleep 20 years, print the full change report and the first 30 mutations of the original lineage.
-// Usage: npm run example [-- <seed=42> <years=20>]
+// Usage: npm run example [-- <seed=42> <years=20> <npcId=c01>]
 import { DAYS_PER_YEAR } from '../src/sim/config.ts';
 import { chainFor, describeMutation, nameOf } from '../src/sim/history.ts';
 import { tellByPlayer } from '../src/sim/propagation.ts';
@@ -11,22 +11,19 @@ import type { IdeaShape } from '../src/sim/types.ts';
 import { createSim } from '../src/sim/world.ts';
 import { loadGameDataFromDisk } from './loadData.ts';
 
-const [seed = '42', yearsArg = '20'] = process.argv.slice(2);
+const [seed = '42', yearsArg = '20', npcId = 'c01'] = process.argv.slice(2);
 const data = loadGameDataFromDisk();
 const L = data.text.labels;
 const sim = createSim(data, seed);
 const shape: IdeaShape = { subject: 'giant', relation: 'liveIn', object: 'mountain', modifiers: ['sing'], form: 'statement' };
 
-// Most talkative fisher in the fishing village (ties broken by id).
-const fishers = data.residents.coast.filter((id) => data.npcs[id].profession === 'fisher');
-const npcId = fishers.reduce((a, b) => (data.npcs[b].talkativeness > data.npcs[a].talkativeness ? b : a));
 const npc = data.npcs[npcId];
-
-console.log(`种子 ${seed}：旅人对渔村最健谈的渔夫${npc.name}（${L.ages[npc.age]}，健谈 ${npc.talkativeness}）讲「${ideaText(shape, data)}」`);
+const village = data.villages[npc.home ?? 'coast'].name;
+console.log(`种子 ${seed}：旅人对${village}的${L.professions[npc.profession]}${npc.name}（${L.ages[npc.age]}，健谈 ${npc.talkativeness}）讲「${ideaText(shape, data)}」`);
 let r = tellByPlayer(sim, npcId, shape);
 let attempts = 1;
 while (r.status === 'rejected') { r = tellByPlayer(sim, npcId, shape); attempts++; }
-console.log(`讲了 ${attempts} 次才被相信。\n`);
+console.log(attempts === 1 ? '讲了 1 次就被相信了。\n' : `讲了 ${attempts} 次才被相信。\n`);
 
 const before = takeSnapshot(sim);
 advanceDays(sim, Number(yearsArg) * DAYS_PER_YEAR);
