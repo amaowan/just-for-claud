@@ -3,6 +3,7 @@
 import { CONFIG } from './config.ts';
 import { anyVersion, describeMutation, nameOf, topVersion } from './history.ts';
 import { parseCore } from './idea.ts';
+import { itemOf } from './manifest.ts';
 import { fill, ideaText, seasonText } from './text.ts';
 import type { SimEvent, VillageCoreState } from './types.ts';
 import { coverage, type Sim } from './world.ts';
@@ -50,19 +51,15 @@ const pct = (x: number) => `${Math.round(x * 100)}%`;
 export function festivalName(sim: Sim, village: string, core: string): string {
   const idea = topVersion(sim, village, core) ?? anyVersion(sim, core);
   const t = sim.data.text.report;
-  return fill(t.festivalName as string, {
+  const c = parseCore(core);
+  return fill(t.festivalName[c.relation] ?? '{seasonShort}{subject}节', {
     seasonShort: seasonText(idea?.season, sim.data, true),
-    subject: sim.data.nouns[parseCore(core).subject].text,
+    subject: sim.data.nouns[c.subject].text,
+    object: sim.data.nouns[c.object].text,
   });
 }
 
-export function placeName(sim: Sim, core: string): { place: string; name: string } {
-  const c = parseCore(core);
-  const n = sim.data.nouns;
-  const placeId = n[c.object].kind === 'place' ? c.object : c.subject;
-  const otherId = placeId === c.object ? c.subject : c.object;
-  return { place: n[placeId].text, name: fill(sim.data.text.report.placeNameName as string, { other: n[otherId].text, place: n[placeId].text }) };
-}
+export { placeName } from './sediment.ts';
 
 export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
   const { data, world } = sim;
@@ -98,13 +95,16 @@ export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
     }
     // Place names and manifestations.
     for (const e of ofType('placeName').slice(0, MAX_PER_KIND)) {
-      const pn = placeName(sim, e.core);
-      entries.push(T('placeName', { village: vname, place: pn.place, name: pn.name }));
+      if (e.type !== 'placeName') continue;
+      const place = data.nouns[e.place].text;
+      entries.push(e.previous
+        ? T('rename', { village: vname, place, name: e.name, previous: e.previous })
+        : T('placeName', { village: vname, place, name: e.name }));
     }
     for (const e of ofType('manifest')) {
       if (e.type !== 'manifest') continue;
       const subject = data.nouns[parseCore(e.core).subject].text;
-      entries.push(fill(t.manifest[e.kind], { village: vname, idea: textOf(v, e.core), subject }));
+      entries.push(fill(t.manifest[e.kind], { village: vname, idea: textOf(v, e.core), subject, ...itemOf(e.core, data) }));
     }
     // Arrivals by the merchant, new sayings with a foothold.
     const viaMerchant = new Set<string>();
@@ -133,9 +133,11 @@ export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
   const global: string[] = [];
   for (const e of events) {
     if (e.type !== 'deity') continue;
+    // Most believed version where the god was born (seasons etc. can differ between versions of a core).
+    const version = e.villages.map((v) => topVersion(sim, v, e.core)).find(Boolean) ?? anyVersion(sim, e.core)!;
     global.push(T('deity', {
       deity: data.nouns[e.deity].text,
-      idea: ideaText(anyVersion(sim, e.core)!, data),
+      idea: ideaText(version, data),
       villages: e.villages.map((v) => data.villages[v].name).join('、'),
     }));
   }

@@ -12,3 +12,9 @@ describe('simplify', () => {
     expect(validProposals('simplify', ctx())).toEqual([]);
   });
 });
+
+describe('simplify only at the modifier cap', () => {
+  it('requires 2 modifiers even if the block limit were lower', () => {
+    expect(validProposals('simplify', ctx({ idea: idea({ modifiers: ['huge'] }) }))).toEqual([]);
+  });
+});

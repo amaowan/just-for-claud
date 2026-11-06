@@ -6,6 +6,8 @@ import villages from '../data/villages.json';
 import npcs from '../data/npcs.json';
 import professions from '../data/tables/profession.json';
 import fusion from '../data/tables/fusion.json';
+import wishes from '../data/tables/wishes.json';
+import items from '../data/tables/items.json';
 import compat from '../data/tables/compat.json';
 import sentence from '../data/text/sentence.json';
 import operatorText from '../data/text/operators.json';
@@ -15,7 +17,7 @@ import ui from '../data/text/ui.json';
 import { loadGameData, type GameData, type RawGameData } from './sim/data.ts';
 
 export const RAW_GAME_DATA: RawGameData = {
-  nouns, relations, modifiers, villages, npcs, professions, fusion, compat,
+  nouns, relations, modifiers, villages, npcs, professions, fusion, wishes, items, compat,
   sentence, operatorText, report, labels, ui,
 };
 

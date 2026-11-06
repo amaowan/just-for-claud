@@ -3,7 +3,7 @@
 
 import type {
   Domain, FusionRecipe, IdeaShape, ModifierBlock, NounBlock, NounKind, Npc, OperatorId,
-  ProfessionInfo, Profession, RelationBlock, RelationCompat, Tie, Village,
+  ItemTable, ProfessionInfo, Profession, RelationBlock, RelationCompat, Tie, Village, Wish,
 } from './types.ts';
 import { OPERATOR_IDS } from './types.ts';
 
@@ -16,6 +16,8 @@ export const DATA_FILES = {
   npcs: 'npcs.json',
   professions: 'tables/profession.json',
   fusion: 'tables/fusion.json',
+  wishes: 'tables/wishes.json',
+  items: 'tables/items.json',
   compat: 'tables/compat.json',
   sentence: 'text/sentence.json',
   operatorText: 'text/operators.json',
@@ -38,6 +40,7 @@ export interface SentenceText {
 export interface ReportText {
   [key: string]: string | Record<string, string>;
   manifest: Record<string, string>;
+  festivalName: Record<string, string>;
 }
 
 export interface Labels {
@@ -69,6 +72,8 @@ export interface GameData {
   ties: Record<string, { to: string; trust: number }[]>;
   professions: Record<Profession, ProfessionInfo>;
   fusion: FusionRecipe[];
+  wishes: Wish[];
+  items: ItemTable;
   compat: Record<string, RelationCompat>;
   text: {
     sentence: SentenceText;
@@ -130,6 +135,8 @@ export function loadGameData(raw: RawGameData): GameData {
   const npcs = byId(npcRaw.npcs, 'npc', errors);
   const professions = raw.professions as Record<Profession, ProfessionInfo>;
   const fusion = raw.fusion as FusionRecipe[];
+  const wishes = raw.wishes as Wish[];
+  const items = raw.items as ItemTable;
   const compat = (raw.compat as { relations: Record<string, RelationCompat> }).relations;
 
   // --- counts ---
@@ -226,6 +233,23 @@ export function loadGameData(raw: RawGameData): GameData {
     if (!relations[f.result.relation]) errors.push(`fusion ${i}: unknown relation ${f.result.relation}`);
   }
 
+  // --- items ---
+  for (const [i, r] of (items?.rules ?? []).entries()) {
+    if (r.subject && !nouns[r.subject]) errors.push(`item rule ${i}: unknown subject ${r.subject}`);
+    if (r.object && !nouns[r.object]) errors.push(`item rule ${i}: unknown object ${r.object}`);
+    if (r.subjectKind && !KINDS.includes(r.subjectKind)) errors.push(`item rule ${i}: bad subjectKind ${r.subjectKind}`);
+    if (!r.item || !r.gather) errors.push(`item rule ${i}: needs item and gather`);
+  }
+  if (!items?.default?.item || !items.default.gather) errors.push('items: missing default');
+
+  // --- wishes ---
+  for (const w of wishes) {
+    if (!modifiers[w.modifierFamily] || modifiers[w.modifierFamily].family !== w.modifierFamily) errors.push(`wish: unknown modifier family ${w.modifierFamily}`);
+    if (!relations[w.relation]?.ritualizable) errors.push(`wish ${w.modifierFamily}: relation ${w.relation} is not ritualizable`);
+    const probe: IdeaShape = { subject: 'mountainGod', relation: w.relation, object: w.object, modifiers: [], form: 'ritual', season: 'spring' };
+    for (const p of shapeProblems(probe, { nouns, relations, modifiers, compat })) errors.push(`wish ${w.modifierFamily}: ${p}`);
+  }
+
   const text = {
     sentence: raw.sentence as SentenceText,
     operators: raw.operatorText as Record<OperatorId, string[]>,
@@ -240,6 +264,7 @@ export function loadGameData(raw: RawGameData): GameData {
   for (const r of relationList) {
     if (!text.sentence.statement[r.id]) errors.push(`missing statement template for ${r.id}`);
     if (r.ritualizable && !text.sentence.ritual[r.id]) errors.push(`missing ritual template for ${r.id}`);
+    if (r.ritualizable && !text.report.festivalName?.[r.id]) errors.push(`missing festival name template for ${r.id}`);
     if (!text.report.manifest[r.manifest]) errors.push(`missing manifest text for ${r.manifest}`);
   }
 
@@ -248,6 +273,6 @@ export function loadGameData(raw: RawGameData): GameData {
   return {
     nouns, relations, modifiers, villages, villageIds, npcs,
     npcIds: Object.keys(npcs).sort(), residents, merchantIds, ties,
-    professions, fusion, compat, text,
+    professions, fusion, wishes, items, compat, text,
   };
 }

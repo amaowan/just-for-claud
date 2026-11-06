@@ -84,6 +84,8 @@ export interface Idea extends IdeaShape {
   lineage: string;
   parents: string[];
   bornDay: number;
+  /** Operator that first produced this version (absent for told / original ideas). */
+  viaOp?: OperatorId;
 }
 
 // ---------- People and places ----------
@@ -143,6 +145,29 @@ export interface FusionRecipe {
   };
 }
 
+/** 成真为物品时的物品名：按主体 / 对象 / 主体种类匹配，第一条命中的规则生效。 */
+export interface ItemRule {
+  subject?: string;
+  object?: string;
+  subjectKind?: NounKind;
+  /** Item name template: {subject} / {object} are noun texts. */
+  item: string;
+  /** How villagers obtain it (verb phrase template). */
+  gather: string;
+}
+
+export interface ItemTable {
+  rules: ItemRule[];
+  default: { item: string; gather: string };
+}
+
+/** 修饰 → 愿望: a deified subject with this modifier can be ritualized into this wish. */
+export interface Wish {
+  modifierFamily: string;
+  relation: string;
+  object: string;
+}
+
 export interface RelationCompat {
   subjectKinds: NounKind[];
   objectKinds: NounKind[];
@@ -155,7 +180,10 @@ export interface Belief {
   ideaKey: string;
   sinceDay: number;
   heat: number;
+  /** Last day this NPC told or heard anything about the core. */
   lastMentionDay: number;
+  /** Last day someone else repeated this exact version to this NPC (or the belief was adopted). */
+  lastEchoDay: number;
 }
 
 /** Per village, per idea core. */
@@ -173,6 +201,15 @@ export interface VillageCoreState {
   festivalDay?: number;
   placeNameDay?: number;
   manifestDay?: number;
+}
+
+export interface PlaceName {
+  core: string;
+  name: string;
+  sinceDay: number;
+  renames: number;
+  /** Named at game start after a village's original belief (not a name formed during play). */
+  initial?: boolean;
 }
 
 export interface TransmissionRecord {
@@ -194,7 +231,8 @@ export type SimEvent =
   | { type: 'arrival'; day: number; village: string; core: string; via: string }
   | { type: 'forgotten'; day: number; village: string; core: string }
   | { type: 'evicted'; day: number; village: string; core: string; by: string }
-  | { type: 'rumor' | 'common' | 'custom' | 'festival' | 'placeName'; day: number; village: string; core: string }
+  | { type: 'rumor' | 'common' | 'custom' | 'festival'; day: number; village: string; core: string }
+  | { type: 'placeName'; day: number; village: string; core: string; place: string; name: string; previous?: string }
   | { type: 'manifest'; day: number; village: string; core: string; kind: ManifestKind }
   | { type: 'deity'; day: number; core: string; deity: string; villages: string[] };
 
@@ -218,8 +256,10 @@ export interface World {
   beliefs: Record<string, Record<string, Belief>>;
   /** villageId -> core -> state. */
   villageCores: Record<string, Record<string, VillageCoreState>>;
-  /** Core keys that already produced a deity. */
+  /** Deity noun id -> day it was born (each god is born once). */
   deities: Record<string, number>;
+  /** villageId -> place noun id -> the place's current name. One name per place at a time. */
+  placeNames: Record<string, Record<string, PlaceName>>;
   /** Lineages introduced by the player, in order. */
   playerLineages: string[];
   history: TransmissionRecord[];

@@ -38,10 +38,29 @@ describe('manifestation by relation', () => {
     for (const id of data.residents.mine.slice(0, 5)) addBelief(sim, id, idea, 'test');
     for (let m = 1; m <= 61; m++) {
       sim.world.day = m * 30;
-      for (const id of data.residents.mine) for (const b of Object.values(sim.world.beliefs[id])) b.lastMentionDay = sim.world.day;
+      for (const id of data.residents.mine) for (const b of Object.values(sim.world.beliefs[id])) { b.lastMentionDay = sim.world.day; b.lastEchoDay = sim.world.day; }
       updateSediment(sim);
     }
     expect(villageCore(sim, 'mine', idea.core).manifestDay).toBeDefined();
     expect(sim.world.events.some((e) => e.type === 'manifest' && e.kind === 'charm')).toBe(true);
+  });
+});
+
+describe('item names', () => {
+  it('uses the specific rule first, then broader ones, then the default', async () => {
+    const { itemOf } = await import('../src/sim/manifest.ts');
+    expect(itemOf('rain|comeFrom|skyLake|statement', data)).toEqual({ item: '天湖之水', gather: '在雨天收集' });
+    expect(itemOf('rain|comeFrom|whale|statement', data)).toEqual({ item: '鲸雨水', gather: '在雨天收集' });
+    expect(itemOf('fox|comeFrom|mountain|statement', data)).toEqual({ item: '狐狸的信物', gather: '在山附近寻找' });
+    expect(itemOf('offering|comeFrom|mountainGod|statement', data).item).toBe('山神的供品');
+  });
+
+  it('the change report names the item', async () => {
+    const { buildReport, takeSnapshot } = await import('../src/sim/report.ts');
+    const sim = createSim(data, 1);
+    const before = takeSnapshot(sim);
+    sim.world.events.push({ type: 'manifest', day: 1, village: 'coast', core: 'rain|comeFrom|skyLake|statement', kind: 'item' });
+    const text = buildReport(sim, before, true).sections.flatMap((s) => s.entries).join('\n');
+    expect(text).toContain('因为「雨来自天湖」，海岸渔村的人开始在雨天收集「天湖之水」');
   });
 });

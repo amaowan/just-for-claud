@@ -1,4 +1,4 @@
-// 简化: ideas with too many blocks lose a modifier.
+// 简化: ideas at the modifier cap with too many blocks lose a modifier.
 import { CONFIG } from '../config.ts';
 import { blockCount } from '../idea.ts';
 import type { Operator } from './types.ts';
@@ -8,6 +8,7 @@ export const simplify: Operator = {
   id: 'simplify',
   propose(ctx) {
     const { data, idea } = ctx;
+    if (idea.modifiers.length < CONFIG.idea.maxModifiers) return [];
     if (blockCount(idea) <= CONFIG.operators.simplifyAboveBlocks) return [];
     return idea.modifiers.map((m, i) => {
       const shape = baseShape(idea);

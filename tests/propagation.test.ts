@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { getGameData } from '../src/gameData.ts';
+import { CONFIG } from '../src/sim/config.ts';
 import { coreKey } from '../src/sim/idea.ts';
 import {
-  acceptanceProbability, listenerCount, mutationProbability, propagateDay, tellByPlayer,
+  acceptanceProbability, effectiveStubbornness, listenerCount, mutationProbability, propagateDay, tellByPlayer,
 } from '../src/sim/propagation.ts';
 import { advanceDays } from '../src/sim/simulate.ts';
 import type { IdeaShape } from '../src/sim/types.ts';
@@ -27,25 +28,43 @@ describe('propagation formulas', () => {
     expect(acceptanceProbability(1, 1, 1.2, 0, false)).toBe(1); // clamped
   });
 
-  it('mutation = 0.1 + 0.4 × imagination + 0.3 × (1 − clarity)', () => {
-    expect(mutationProbability({ imagination: 0.5, stubbornness: 0.9 }, giant)).toBeCloseTo(0.1 + 0.2 + 0.3 * 0.15);
-    expect(mutationProbability({ imagination: 0, stubbornness: 0 }, { ...giant, modifiers: [] })).toBeCloseTo(0.1);
+  it('mutation = scale × (base + 0.4 × imagination + 0.3 × (1 − clarity))', () => {
+    const { mutationScale: k, mutationBase: b } = CONFIG.propagation;
+    expect(mutationProbability({ imagination: 0.5, stubbornness: 0.9 }, giant)).toBeCloseTo(k * (b + 0.2 + 0.3 * 0.15));
+    expect(mutationProbability({ imagination: 0, stubbornness: 0 }, { ...giant, modifiers: [] })).toBeCloseTo(k * b);
   });
 });
 
 describe('daily propagation', () => {
   it('the player can plant an idea; a refusal leaves no belief', () => {
-    let accepted = 0;
     for (let seed = 0; seed < 20; seed++) {
       const sim = createSim(data, seed);
       const r = tellByPlayer(sim, 'c03', giant);
       const has = !!sim.world.beliefs.c03[coreKey(giant)];
       expect(has).toBe(r.status === 'accepted');
       expect(sim.world.history.at(-1)).toMatchObject({ from: 'player', to: 'c03', accepted: r.status === 'accepted' });
-      if (has) accepted++;
     }
-    // c03: gullibility 0.9 × 0.8 trust × 1.0 fit = 0.72
-    expect(accepted).toBeGreaterThan(8);
+  });
+
+  it('the player is believed at least 75% of the time (floor 0.8), even by a skeptic', () => {
+    let accepted = 0;
+    const n = 400;
+    for (let seed = 0; seed < n; seed++) {
+      // 老贝: gullibility 0.2 -> formula alone gives 0.2 × 0.8 × 1.0 = 16%.
+      if (tellByPlayer(createSim(data, seed), 'c02', giant).status === 'accepted') accepted++;
+    }
+    expect(accepted / n).toBeGreaterThan(0.75);
+    expect(accepted / n).toBeLessThan(0.86); // floor 0.8; 400 trials: about ±2% noise
+  });
+
+  it('believers of the original village belief are extra stubborn about it', () => {
+    const sim = createSim(data, 11);
+    const original = sim.world.ideas[sim.initialLocal.coast[0].lineage];
+    const holder = data.residents.coast.find((id) => sim.world.beliefs[id][original.core])!;
+    const variant = registerIdea(sim, { ...original, subject: 'rainSpirit' }, original.lineage, [original.key], 1);
+    expect(effectiveStubbornness(sim, holder, [original])).toBeGreaterThanOrEqual(CONFIG.tradition.stubbornness);
+    // A mutated offshoot does not get the bonus.
+    expect(effectiveStubbornness(sim, holder, [variant])).toBe(data.npcs[holder].stubbornness);
   });
 
   it('an idea spreads through the village over a month', () => {

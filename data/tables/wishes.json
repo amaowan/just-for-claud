@@ -1,0 +1,7 @@
+[
+  { "modifierFamily": "sing", "relation": "like", "object": "song" },
+  { "modifierFamily": "talk", "relation": "like", "object": "story" },
+  { "modifierFamily": "greedy", "relation": "like", "object": "offering" },
+  { "modifierFamily": "ticklish", "relation": "fear", "object": "feather" },
+  { "modifierFamily": "sneeze", "relation": "fear", "object": "pollen" }
+]

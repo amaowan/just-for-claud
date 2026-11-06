@@ -10,9 +10,13 @@
   "common": "「{idea}」在{village}成了常识，{coverage}的人都这么说。",
   "custom": "{village}有了新习俗：{idea}。",
   "festival": "{village}的日历上多了一个节日：「{festival}」。",
-  "festivalName": "{seasonShort}{subject}节",
+  "festivalName": {
+    "like": "{seasonShort}{object}会",
+    "fear": "{seasonShort}避{object}节"
+  },
   "placeName": "{village}的人开始把{place}叫作「{name}」。",
   "placeNameName": "{other}{place}",
+  "rename": "{village}的人不再叫「{previous}」，改口把{place}叫作「{name}」。",
   "coverageChange": "「{idea}」在{village}的相信者从 {before} 人变成了 {after} 人。",
   "forgotten": "{village}已经没有人记得「{idea}」了。",
   "evicted": "{village}的说法太多了，「{idea}」被挤掉，渐渐没人再提。",
@@ -20,7 +24,7 @@
   "manifest": {
     "beingOrPlace": "成真了（生灵或地点）：「{idea}」——在{village}，这已经不只是传说。",
     "skill": "成真了（技艺）：大家都相信「{idea}」，{village}真的多了一门手艺。",
-    "item": "成真了（物品）：因为「{idea}」，{village}出现了一种新的物产。",
+    "item": "成真了（物品）：因为「{idea}」，{village}的人开始{gather}「{item}」。",
     "charm": "成真了（护身符）：因为「{idea}」，{village}的人开始佩戴{subject}护身符。",
     "ritual": "成真了（仪式）：「{idea}」。",
     "taboo": "成真了（禁忌）：在{village}，「{idea}」成了不能违反的规矩——违反了真的会出事。",

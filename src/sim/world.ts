@@ -4,6 +4,7 @@ import { CONFIG } from './config.ts';
 import type { GameData } from './data.ts';
 import { coreKey, normalizeShape, shapeKey, type LocalBelief } from './idea.ts';
 import { Rng } from './rng.ts';
+import { placeName, placeOf } from './sediment.ts';
 import type { Belief, Idea, IdeaShape, OperatorId, VillageCoreState, World } from './types.ts';
 
 /** Live simulation handle: immutable data + mutable world + the RNG stream. */
@@ -26,13 +27,14 @@ export function createSim(data: GameData, seed: string | number): Sim {
     beliefs: {},
     villageCores: {},
     deities: {},
+    placeNames: {},
     playerLineages: [],
     history: [],
     events: [],
     stats: { triggers: {}, acceptedMutations: {}, transmissions: 0, rejected: 0 },
   };
   for (const id of data.npcIds) world.beliefs[id] = {};
-  for (const v of data.villageIds) world.villageCores[v] = {};
+  for (const v of data.villageIds) { world.villageCores[v] = {}; world.placeNames[v] = {}; }
   const sim: Sim = { data, world, rng, initialLocal: {} };
 
   for (const v of data.villageIds) {
@@ -47,6 +49,11 @@ export function createSim(data: GameData, seed: string | number): Sim {
       const vc = villageCore(sim, v, idea.core);
       vc.everCommonDay = 0;
       if (vc.believers >= CONFIG.sediment.rumorMinBelievers) vc.everRumorDay = 0;
+      // An old belief about a place has already named it before the game starts.
+      const place = placeOf(idea.core, sim);
+      if (place && !world.placeNames[v][place]) {
+        world.placeNames[v][place] = { core: idea.core, name: placeName(sim, idea.core).name, sinceDay: 0, renames: 0, initial: true };
+      }
     }
   }
   syncRng(sim);
@@ -59,13 +66,14 @@ export function syncRng(sim: Sim): void {
 }
 
 /** Get or create the idea for a shape. A new idea starts its own lineage when lineage is null. */
-export function registerIdea(sim: Sim, shape: IdeaShape, lineage: string | null, parents: string[], day: number): Idea {
+export function registerIdea(sim: Sim, shape: IdeaShape, lineage: string | null, parents: string[], day: number, viaOp?: OperatorId): Idea {
   const s = normalizeShape(shape);
   const key = shapeKey(s);
   const existing = sim.world.ideas[key];
   if (existing) return existing;
   const core = coreKey(s);
   const idea: Idea = { ...s, key, core, lineage: lineage ?? key, parents, bornDay: day };
+  if (viaOp) idea.viaOp = viaOp;
   sim.world.ideas[key] = idea;
   sim.world.coreLineage[core] ??= idea.lineage;
   return idea;
@@ -102,7 +110,7 @@ export function believedIdeas(sim: Sim, npcId: string): Idea[] {
 
 export function addBelief(sim: Sim, npcId: string, idea: Idea, via: string, silent = false): void {
   const day = sim.world.day;
-  const belief: Belief = { ideaKey: idea.key, sinceDay: day, heat: CONFIG.heat.initial, lastMentionDay: day };
+  const belief: Belief = { ideaKey: idea.key, sinceDay: day, heat: CONFIG.heat.initial, lastMentionDay: day, lastEchoDay: day };
   const had = sim.world.beliefs[npcId][idea.core];
   sim.world.beliefs[npcId][idea.core] = belief;
   const home = sim.data.npcs[npcId].home;

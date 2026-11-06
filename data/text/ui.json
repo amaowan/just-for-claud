@@ -15,7 +15,7 @@
   "listener": "讲给谁听",
   "tell": "讲述",
   "accepted": "{name}听完点了点头，记住了：「{idea}」",
-  "rejected": "{name}摇了摇头，不太相信。可以再试试，或者换个人讲。",
+  "rejected": "{name}摇了摇头——对方没信，可以再讲一次。",
   "alreadyBelieves": "{name}早就听说过了。",
   "timeTitle": "时间",
   "advanceDay": "过 1 天",

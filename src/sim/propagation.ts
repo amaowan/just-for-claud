@@ -26,11 +26,11 @@ export function acceptanceProbability(gullibility: number, trust: number, fit: n
   return Math.max(0, Math.min(1, p));
 }
 
-/** 变形概率 = 0.1 + 0.4 × 想象力 + 0.3 × (1 − 清晰度) (− k × 固执, k defaults to 0). */
+/** 变形概率 = 缩放 × (基础 + 0.4 × 想象力 + 0.3 × (1 − 清晰度) − k × 固执), k defaults to 0. */
 export function mutationProbability(teller: Pick<Npc, 'imagination' | 'stubbornness'>, idea: IdeaShape): number {
   const p = CONFIG.propagation;
-  const v = p.mutationBase + p.mutationImagination * teller.imagination
-    + p.mutationUnclarity * (1 - clarity(idea)) - p.mutationStubbornness * teller.stubbornness;
+  const v = p.mutationScale * (p.mutationBase + p.mutationImagination * teller.imagination
+    + p.mutationUnclarity * (1 - clarity(idea)) - p.mutationStubbornness * teller.stubbornness);
   return Math.max(0, Math.min(1, v));
 }
 
@@ -67,6 +67,18 @@ interface Hearing {
   village: string;
   local: LocalBelief[];
   via: string;
+  /** Lower bound on the acceptance probability (the traveller's telling). */
+  minAcceptance?: number;
+}
+
+/** Stubbornness used for a rewrite: raised when the belief being replaced is the village's original one. */
+export function effectiveStubbornness(sim: Sim, listenerId: string, conflicts: Idea[]): number {
+  const npc = sim.data.npcs[listenerId];
+  const home = npc.home;
+  if (home && conflicts.some((c) => sim.initialLocal[home].some((l) => l.core === c.core))) {
+    return Math.max(npc.stubbornness, CONFIG.tradition.stubbornness);
+  }
+  return npc.stubbornness;
 }
 
 type HearingResult = 'same' | 'accepted' | 'rejected';
@@ -80,11 +92,15 @@ function hear(sim: Sim, h: Hearing): HearingResult {
     // Hearing the same core again refreshes it, whatever the version.
     existing.heat = CONFIG.heat.initial;
     existing.lastMentionDay = world.day;
-    if (existing.ideaKey === h.idea.key) return 'same';
+    if (existing.ideaKey === h.idea.key) {
+      existing.lastEchoDay = world.day;
+      return 'same';
+    }
   }
   const conflicts = believedIdeas(sim, h.listenerId).filter((b) => beliefsConflict(b, h.idea, data));
   const fit = fitFactor(fitOf(h.idea, data.villages[h.village], h.local, data));
-  const p = acceptanceProbability(listener.gullibility, h.trust, fit, listener.stubbornness, conflicts.length > 0);
+  const stub = effectiveStubbornness(sim, h.listenerId, conflicts);
+  const p = Math.max(h.minAcceptance ?? 0, acceptanceProbability(listener.gullibility, h.trust, fit, stub, conflicts.length > 0));
   if (!sim.rng.chance(p)) return 'rejected';
   acceptIdea(sim, h.listenerId, h.idea, conflicts, h.via);
   return 'accepted';
@@ -122,7 +138,7 @@ export function retell(sim: Sim, tellerId: string, listenerId: string, idea: Ide
       proposal = { ...proposal, params: { ...proposal.params, other: ideaText(world.ideas[proposal.extraParent], data) } };
     }
     const parents = proposal.extraParent ? [idea.key, proposal.extraParent] : [idea.key];
-    heard = registerIdea(sim, proposal.shape, idea.lineage, parents, world.day);
+    heard = registerIdea(sim, proposal.shape, idea.lineage, parents, world.day, op);
     bumpStat(world.stats.triggers, idea.lineage, op);
   }
 
@@ -140,7 +156,7 @@ export function retell(sim: Sim, tellerId: string, listenerId: string, idea: Ide
 
 export type TellResult = { status: 'accepted' | 'rejected' | 'already'; idea: Idea };
 
-/** The traveller tells an idea directly. Uses the same acceptance formula; never mutates. */
+/** The traveller tells an idea directly. Same acceptance formula with a floor; never mutates. */
 export function tellByPlayer(sim: Sim, npcId: string, shape: IdeaShape): TellResult {
   const { world } = sim;
   const idea = registerIdea(sim, shape, null, [], world.day);
@@ -148,7 +164,7 @@ export function tellByPlayer(sim: Sim, npcId: string, shape: IdeaShape): TellRes
   const village = locationOf(sim, npcId);
   const result = hear(sim, {
     listenerId: npcId, idea, trust: CONFIG.propagation.playerTrust, village,
-    local: localBeliefs(sim, village), via: 'player',
+    local: localBeliefs(sim, village), via: 'player', minAcceptance: CONFIG.propagation.playerMinAcceptance,
   });
   if (result !== 'same') {
     world.history.push({

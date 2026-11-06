@@ -3,7 +3,20 @@
 import { CONFIG, DAYS_PER_YEAR } from './config.ts';
 import type { GameData } from './data.ts';
 import { parseCore } from './idea.ts';
+import { fill } from './text.ts';
 import type { ManifestKind, VillageCoreState } from './types.ts';
+
+/** The concrete item an 「X 来自 Y」 idea produces when it comes true, from data/tables/items.json. */
+export function itemOf(core: string, data: GameData): { item: string; gather: string } {
+  const c = parseCore(core);
+  const s = data.nouns[c.subject];
+  const o = data.nouns[c.object];
+  const rule = data.items.rules.find((r) =>
+    (!r.subject || r.subject === c.subject) && (!r.object || r.object === c.object) && (!r.subjectKind || r.subjectKind === s.kind));
+  const t = rule ?? data.items.default;
+  const params = { subject: s.text, object: o.text };
+  return { item: fill(t.item, params), gather: fill(t.gather, params) };
+}
 
 export function manifestKindOf(core: string, data: GameData): ManifestKind {
   return data.relations[parseCore(core).relation].manifest;

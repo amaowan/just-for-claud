@@ -1,0 +1,17 @@
+{
+  "rules": [
+    { "subject": "rain", "object": "skyLake", "item": "天湖之水", "gather": "在雨天收集" },
+    { "subject": "rain", "item": "{object}雨水", "gather": "在雨天收集" },
+    { "subject": "wind", "item": "{object}风铃", "gather": "在屋檐下挂起" },
+    { "subject": "hearth", "item": "{object}火种", "gather": "小心保存" },
+    { "subject": "stone", "item": "{object}石", "gather": "四处寻找" },
+    { "subject": "shell", "item": "{object}贝", "gather": "在海边捡拾" },
+    { "subject": "song", "item": "{object}古歌谱", "gather": "一笔笔抄写" },
+    { "subject": "story", "item": "{object}故事簿", "gather": "一页页记下" },
+    { "subject": "feather", "item": "{object}羽毛", "gather": "收集" },
+    { "subject": "pollen", "item": "{object}花粉", "gather": "收集" },
+    { "subjectKind": "creature", "item": "{subject}的信物", "gather": "在{object}附近寻找" },
+    { "subjectKind": "spirit", "item": "{subject}的光点", "gather": "在夜里收集" }
+  ],
+  "default": { "item": "{object}的{subject}", "gather": "收集" }
+}
