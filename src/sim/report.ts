@@ -133,9 +133,11 @@ export function buildReport(sim: Sim, before: Snapshot, long: boolean): Report {
   const global: string[] = [];
   for (const e of events) {
     if (e.type !== 'deity') continue;
+    // Most believed version where the god was born (seasons etc. can differ between versions of a core).
+    const version = e.villages.map((v) => topVersion(sim, v, e.core)).find(Boolean) ?? anyVersion(sim, e.core)!;
     global.push(T('deity', {
       deity: data.nouns[e.deity].text,
-      idea: ideaText(anyVersion(sim, e.core)!, data),
+      idea: ideaText(version, data),
       villages: e.villages.map((v) => data.villages[v].name).join('、'),
     }));
   }

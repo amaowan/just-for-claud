@@ -61,3 +61,19 @@ describe('determinism', () => {
     expect(JSON.stringify(a.world.beliefs)).not.toBe(JSON.stringify(b.world.beliefs));
   });
 });
+
+describe('deity text', () => {
+  it('quotes the version most people in the birth village believe', async () => {
+    const { addBelief, registerIdea } = await import('../src/sim/world.ts');
+    const sim = createSim(data, 2);
+    const base = { subject: 'mountainGod', relation: 'like', object: 'song', modifiers: [], form: 'ritual' as const };
+    const autumn = registerIdea(sim, { ...base, season: 'autumn' }, null, [], 0);
+    const summer = registerIdea(sim, { ...base, season: 'summer' }, autumn.lineage, [autumn.key], 1);
+    const before = takeSnapshot(sim);
+    addBelief(sim, data.residents.mine[0], autumn, 'test');
+    for (const id of data.residents.mine.slice(1, 7)) addBelief(sim, id, summer, 'test');
+    sim.world.events.push({ type: 'deity', day: 1, core: summer.core, deity: 'mountainGod', villages: ['mine'] });
+    const text = buildReport(sim, before, true).sections.flatMap((s) => s.entries).join('\n');
+    expect(text).toContain('山神从「每到夏天，人们要为山神唱歌」里醒来');
+  });
+});
