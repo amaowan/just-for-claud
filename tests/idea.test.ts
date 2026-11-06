@@ -66,3 +66,23 @@ describe('idea helpers', () => {
     expect(fitOf(idea, coast, [{ core: 'whale|liveIn|sea|statement', lineage: 'L1' }], data)).toBe('conflict');
   });
 });
+
+describe('rituals coexist with their source statement', () => {
+  const statement = asIdea({ subject: 'mountainGod', relation: 'liveIn', object: 'mountain', modifiers: ['sing2'], form: 'statement' }, 'L');
+  const ritual = asIdea({ subject: 'mountainGod', relation: 'like', object: 'song', modifiers: [], form: 'ritual', season: 'spring' }, 'L');
+
+  it('a believer can hold both', () => {
+    expect(beliefsConflict(statement, ritual, data)).toBe(false);
+    expect(beliefsConflict(ritual, statement, data)).toBe(false);
+  });
+
+  it('two statements of the same lineage still conflict, and so do inverted rituals', () => {
+    expect(beliefsConflict(statement, asIdea({ ...statement, object: 'sea' }, 'L'), data)).toBe(true);
+    const fears = asIdea({ ...ritual, relation: 'fear' }, 'L');
+    expect(beliefsConflict(ritual, fears, data)).toBe(true);
+  });
+
+  it('a ritual is not penalised by its own established statement in the village', () => {
+    expect(fitOf(ritual, data.villages.mine, [{ core: statement.core, lineage: 'L' }], data)).not.toBe('conflict');
+  });
+});

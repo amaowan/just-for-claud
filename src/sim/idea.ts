@@ -85,10 +85,20 @@ export function invertedPair(a: IdeaShape, b: IdeaShape, data: GameData): boolea
   return a.subject === b.subject && a.object === b.object && areInverse(a.relation, b.relation, data);
 }
 
+/**
+ * A ritual and the statement it came from (same lineage, different form) can be believed together:
+ * 「每到春天，人们要为山神唱歌」 does not contradict 「山里住着山神」. Exception to PLAN-M1 §0 #6.
+ */
+export function ritualCoexists(a: Pick<IdeaShape, 'form'> & { lineage: string }, b: Pick<IdeaShape, 'form'> & { lineage: string }): boolean {
+  return a.lineage === b.lineage && a.form !== b.form;
+}
+
 /** Listener-level conflict between two versions someone might believe. */
 export function beliefsConflict(a: Idea, b: Idea, data: GameData): boolean {
   if (a.key === b.key) return false;
-  return a.core === b.core || a.lineage === b.lineage || invertedPair(a, b, data);
+  if (invertedPair(a, b, data)) return true;
+  if (ritualCoexists(a, b)) return false;
+  return a.core === b.core || a.lineage === b.lineage;
 }
 
 export interface LocalBelief {
@@ -104,7 +114,8 @@ export function fitOf(idea: Idea, village: Village, local: LocalBelief[], data: 
   for (const l of local) {
     if (l.core === idea.core) { match = true; continue; }
     const shape = parseCore(l.core);
-    if (l.lineage === idea.lineage || invertedPair(idea, { ...shape, modifiers: [] }, data)) return 'conflict';
+    if (invertedPair(idea, { ...shape, modifiers: [] }, data)) return 'conflict';
+    if (l.lineage === idea.lineage && !ritualCoexists(idea, { form: shape.form, lineage: l.lineage })) return 'conflict';
     if (sharesNoun(idea, { ...shape, modifiers: [] })) match = true;
   }
   return match ? 'match' : 'neutral';
