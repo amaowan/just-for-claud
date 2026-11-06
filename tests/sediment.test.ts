@@ -152,3 +152,12 @@ describe('decay', () => {
     expect(sim.world.beliefs[coast[0]][idea.core].lastEchoDay).toBe(300);
   });
 });
+
+describe('place names the villages start with', () => {
+  it('each original belief about a place names it at game start, without a naming event', () => {
+    const sim = createSim(data, 1);
+    expect(sim.world.placeNames.coast.skyLake).toMatchObject({ name: '雨天湖', initial: true, renames: 0 });
+    expect(sim.world.placeNames.mine.mountain).toMatchObject({ name: '狐狸山', initial: true, renames: 0 });
+    expect(sim.world.events.filter((e) => e.type === 'placeName')).toEqual([]);
+  });
+});

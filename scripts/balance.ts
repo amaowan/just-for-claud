@@ -7,7 +7,6 @@ import { writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { CONFIG, DAYS_PER_YEAR } from '../src/sim/config.ts';
-import { parseCore } from '../src/sim/idea.ts';
 import { tellByPlayer } from '../src/sim/propagation.ts';
 import { advanceDays } from '../src/sim/simulate.ts';
 import type { IdeaShape, OperatorId } from '../src/sim/types.ts';
@@ -67,15 +66,11 @@ function runOne(seed: number, years: number): RunResult {
     if (placeEvents.some((e) => 'core' in e && e.core === core)) reached.placeName++;
     if (states.some((s) => s.manifestDay !== undefined)) reached.manifest++;
   }
-  // Place names: group naming events by (village, place noun). Extra events for a place are renames.
-  const perPlace = new Map<string, number>();
-  for (const e of placeEvents) {
-    if (!('core' in e) || !('village' in e)) continue;
-    const c = parseCore(e.core);
-    const place = data.nouns[c.object].kind === 'place' ? c.object : c.subject;
-    const k = `${e.village}|${place}`;
-    perPlace.set(k, (perPlace.get(k) ?? 0) + 1);
-  }
+  // Place names formed during play: places named in game (names the villages started with do not count
+  // unless they were later replaced). Renames per place come from the place-name state.
+  const placeEntries = data.villageIds.flatMap((v) => Object.values(world.placeNames?.[v] ?? {}));
+  const placesNamed = placeEntries.filter((p) => !p.initial || p.renames > 0).length;
+  const maxRenames = Math.max(0, ...placeEntries.map((p) => p.renames));
   let finalBelievers = 0;
   for (const id of data.npcIds) {
     for (const b of Object.values(world.beliefs[id])) if (world.ideas[b.ideaKey].lineage === lineage) finalBelievers++;
@@ -92,8 +87,8 @@ function runOne(seed: number, years: number): RunResult {
     activeCoresEnd,
     customAny: customEvents.length > 0,
     customPlayer: customEvents.some((e) => 'core' in e && cores.has(e.core)),
-    placesNamed: perPlace.size,
-    maxRenamesPerPlace: Math.max(0, ...[...perPlace.values()].map((n) => n - 1)),
+    placesNamed,
+    maxRenamesPerPlace: maxRenames,
     deityBirths: world.events.filter((e) => e.type === 'deity').length,
     triggers: world.stats.triggers[lineage] ?? {},
     acceptedMutations: world.stats.acceptedMutations[lineage] ?? {},

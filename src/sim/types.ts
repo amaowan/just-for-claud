@@ -192,6 +192,8 @@ export interface PlaceName {
   name: string;
   sinceDay: number;
   renames: number;
+  /** Named at game start after a village's original belief (not a name formed during play). */
+  initial?: boolean;
 }
 
 export interface TransmissionRecord {

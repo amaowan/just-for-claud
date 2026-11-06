@@ -4,6 +4,7 @@ import { CONFIG } from './config.ts';
 import type { GameData } from './data.ts';
 import { coreKey, normalizeShape, shapeKey, type LocalBelief } from './idea.ts';
 import { Rng } from './rng.ts';
+import { placeName, placeOf } from './sediment.ts';
 import type { Belief, Idea, IdeaShape, OperatorId, VillageCoreState, World } from './types.ts';
 
 /** Live simulation handle: immutable data + mutable world + the RNG stream. */
@@ -48,6 +49,11 @@ export function createSim(data: GameData, seed: string | number): Sim {
       const vc = villageCore(sim, v, idea.core);
       vc.everCommonDay = 0;
       if (vc.believers >= CONFIG.sediment.rumorMinBelievers) vc.everRumorDay = 0;
+      // An old belief about a place has already named it before the game starts.
+      const place = placeOf(idea.core, sim);
+      if (place && !world.placeNames[v][place]) {
+        world.placeNames[v][place] = { core: idea.core, name: placeName(sim, idea.core).name, sinceDay: 0, renames: 0, initial: true };
+      }
     }
   }
   syncRng(sim);
