@@ -46,5 +46,20 @@
   "colStage": "阶段",
   "colMentions": "提及次数",
   "colExtras": "其他",
-  "manifested": "已成真：{kind}"
+  "manifested": "已成真：{kind}",
+  "sceneLabel": "两个村庄的场景：每个圆是一位村民，外圈颜色是他正相信的说法",
+  "pause": "暂停",
+  "speed1": "1×",
+  "speed4": "4×",
+  "speed16": "16×",
+  "speedLabel": "速度",
+  "legendTitle": "丝线：正在流传的说法",
+  "legendEmpty": "还没有说法在流传。",
+  "travellerMark": "旅",
+  "today": "今天有 {n} 次转述被相信",
+  "sleeping": "沉睡中……",
+  "yearCounter": "第 {year} 年",
+  "bubbleAccepted": "信了",
+  "bubbleRejected": "没信",
+  "playerLabel": "旅人讲述"
 }

@@ -38,7 +38,7 @@ const LOCAL = {
     peak: { x: 330, y: 150 },
   },
   mine: {
-    anchors: { mountain: { x: 220, y: 118 }, skyLake: { x: 92, y: 52 }, sea: { x: 372, y: 470 } },
+    anchors: { mountain: { x: 220, y: 118 }, skyLake: { x: 360, y: 52 }, sea: { x: 372, y: 470 } },
     peak: { x: 220, y: 66 },
   },
 } as const;

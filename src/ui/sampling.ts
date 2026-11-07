@@ -21,9 +21,24 @@ export function sampleSparks(records: TransmissionRecord[], max: number, homeOf:
   return picked.map((p) => p.r);
 }
 
-/** How many sparks a day may show at a given speed. */
+/**
+ * How many sparks one simulated day may show at a given speed. Faster speeds run more
+ * days per second, so each day gets fewer sparks to keep roughly 10–15 on screen per second.
+ */
 export function sparkBudget(speed: number): number {
-  if (speed >= 16) return 3;
-  if (speed >= 4) return 8;
-  return 24;
+  if (speed >= 16) return 1;
+  if (speed >= 4) return 3;
+  return 12;
+}
+
+/** Real milliseconds per simulated day. */
+export function dayMs(speed: number): number {
+  return speed > 0 ? 1100 / speed : Infinity;
+}
+
+/** How long a spark takes to fly, in real milliseconds. */
+export function sparkMs(speed: number): number {
+  if (speed >= 16) return 450;
+  if (speed >= 4) return 600;
+  return 850;
 }
