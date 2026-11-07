@@ -206,11 +206,11 @@ export class Stage {
       const line = L.lanterns[v];
       if (cores.length) {
         const g = s('g', { class: 'lanterns' },
-          s('path', { class: 'lantern-string', d: `M${line.x1} ${line.y} Q${(line.x1 + line.x2) / 2} ${line.y + 16} ${line.x2} ${line.y}` }));
+          s('path', { class: 'lantern-string', d: `M${line.x1} ${line.y} Q${(line.x1 + line.x2) / 2} ${line.y + 10} ${line.x2} ${line.y}` }));
         cores.forEach((c, i) => {
           const t = (i + 1) / (cores.length + 1);
           const x = line.x1 + (line.x2 - line.x1) * t;
-          const y = line.y + 16 * 4 * t * (1 - t) + 6;
+          const y = line.y + 10 * 4 * t * (1 - t) + 6;
           const festival = c.festivalDay !== undefined;
           const top = topVersion(sim, v, c.core);
           const lantern = s('g', { class: `lantern${festival ? ' festival' : ''}${this.fresh(`l:${v}:${c.core}:${festival}`) ? ' appear' : ''}`, transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` },

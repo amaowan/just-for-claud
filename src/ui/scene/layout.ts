@@ -36,10 +36,14 @@ const LOCAL = {
   coast: {
     anchors: { sea: { x: 300, y: 462 }, skyLake: { x: 330, y: 58 }, mountain: { x: 96, y: 150 } },
     peak: { x: 330, y: 150 },
+    // Between the village title and the sky lake.
+    lanterns: { x1: 168, x2: 268, y: 14 },
   },
   mine: {
     anchors: { mountain: { x: 220, y: 118 }, skyLake: { x: 360, y: 52 }, sea: { x: 372, y: 470 } },
     peak: { x: 220, y: 66 },
+    // Right of the mountain god's halo, left of the sky lake.
+    lanterns: { x1: 262, x2: 318, y: 14 },
   },
 } as const;
 
@@ -87,7 +91,7 @@ export function computeLayout(data: GameData, orientation: Orientation): SceneLa
     anchors[v] = {};
     for (const [place, p] of Object.entries(local.anchors)) anchors[v][place] = add(p, rect);
     peak[v] = add(local.peak, rect);
-    lanterns[v] = { x1: rect.x + 30, x2: rect.x + rect.w - 30, y: rect.y + 22 };
+    lanterns[v] = { x1: rect.x + local.lanterns.x1, x2: rect.x + local.lanterns.x2, y: rect.y + local.lanterns.y };
     traveller[v] = add({ x: 36, y: 210 }, rect);
     market[v] = add(marketLocal[v], rect);
   }
