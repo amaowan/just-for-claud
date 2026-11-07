@@ -11,7 +11,7 @@ export function renderDebug(sim: Sim, open: boolean, setOpen: (v: boolean) => vo
   const { data, world } = sim;
   const ui = data.text.ui;
   const L = data.text.labels;
-  const details = h('details', { class: 'panel debug', open });
+  const details = h('details', { class: 'card debug', open });
   details.addEventListener('toggle', () => setOpen(details.open));
   details.append(h('summary', {}, ui.debugTitle));
   if (!open) return details;
@@ -33,7 +33,7 @@ export function renderDebug(sim: Sim, open: boolean, setOpen: (v: boolean) => vo
       h('td', {}, beliefs)));
   }
   npcTable.append(tbody);
-  details.append(h('h3', {}, ui.debugNpcs), h('div', { class: 'scroll' }, npcTable));
+  details.append(h('h3', {}, ui.debugNpcs), h('div', { class: 'scroll-x' }, npcTable));
 
   details.append(h('h3', {}, ui.debugCores));
   for (const v of data.villageIds) {
@@ -57,7 +57,7 @@ export function renderDebug(sim: Sim, open: boolean, setOpen: (v: boolean) => vo
         h('td', {}, extras.join('；'))));
     }
     table.append(body);
-    details.append(h('h4', {}, `${data.villages[v].name}（${cores.length}）`), h('div', { class: 'scroll' }, table));
+    details.append(h('h4', {}, `${data.villages[v].name}（${cores.length}）`), h('div', { class: 'scroll-x' }, table));
   }
   return details;
 }

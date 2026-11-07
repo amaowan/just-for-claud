@@ -12,7 +12,7 @@ export function renderChains(sim: Sim, onlyMutations: boolean, setOnlyMutations:
   const ui = data.text.ui;
   const toggle = h('input', { type: 'checkbox', checked: onlyMutations });
   toggle.addEventListener('change', () => setOnlyMutations(toggle.checked));
-  const root = h('section', { class: 'panel chains' },
+  const root = h('section', { class: 'card chains' },
     h('h2', {}, ui.ideasTitle),
     h('label', { class: 'inline' }, toggle, ` ${ui.onlyMutations}`));
 

@@ -1,12 +1,12 @@
 // Build an idea from dropdowns and tell it to an NPC.
 import { isValidShape } from '../sim/idea.ts';
-import { tellByPlayer } from '../sim/propagation.ts';
+import { tellByPlayer, type TellResult } from '../sim/propagation.ts';
 import { fill, ideaText } from '../sim/text.ts';
 import type { IdeaShape } from '../sim/types.ts';
 import { locationOf, type Sim } from '../sim/world.ts';
 import { h } from './dom.ts';
 
-export function renderComposer(getSim: () => Sim, onTold: () => void): HTMLElement {
+export function renderComposer(getSim: () => Sim, onTold: (npcId: string, result: TellResult) => void): HTMLElement {
   const data = getSim().data;
   const ui = data.text.ui;
   const nouns = Object.values(data.nouns).filter((n) => !n.derived);
@@ -83,7 +83,7 @@ export function renderComposer(getSim: () => Sim, onTold: () => void): HTMLEleme
     const key = result.status === 'accepted' ? 'accepted' : result.status === 'rejected' ? 'rejected' : 'alreadyBelieves';
     message.textContent = fill(ui[key], { name, idea: ideaText(result.idea, data) });
     message.dataset.status = result.status;
-    onTold();
+    onTold(listener.value, result);
   });
 
   // Default: the GDD example 巨人 · 住在 · 山 · 会唱歌的.
@@ -96,7 +96,7 @@ export function renderComposer(getSim: () => Sim, onTold: () => void): HTMLEleme
   refreshPreview();
 
   const field = (label: string, el: HTMLElement) => h('label', { class: 'field' }, h('span', {}, label), el);
-  const root = h('section', { class: 'panel composer' },
+  const root = h('section', { class: 'card composer' },
     h('h2', {}, ui.composeTitle),
     h('div', { class: 'fields' },
       field(ui.modifier, modSelects[0]), field(ui.modifier, modSelects[1]),
